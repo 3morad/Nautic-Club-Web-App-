@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Tickets - Nautic Club{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">My Tickets</h1>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for ticket in tickets %}
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="p-6">
+                    {% if ticket.isSupport %}
+                        {# Support Ticket Display #}
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">{{ ticket.title }}</h2>
+                                <p class="text-gray-600">{{ ticket.createdAt|date('F d, Y') }}</p>
+                            </div>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                support
+                            </span>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Category</span>
+                                <span class="font-medium">{{ ticket.category }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Status</span>
+                                <span class="font-medium 
+                                    {% if ticket.status == 'open' %}text-green-600
+                                    {% elseif ticket.status == 'in_progress' %}text-yellow-600
+                                    {% else %}text-gray-600{% endif %}">
+                                    {{ ticket.status|capitalize }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-sm mt-2">
+                                <span class="text-gray-600">Priority</span>
+                                <span class="font-medium">{{ ticket.priority|capitalize }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <a href="{{ path('ticket_show', {'id': ticket.id}) }}" 
+                               class="w-full block text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                                View Support Ticket
+                            </a>
+                        </div>
+                    {% else %}
+                        {# Event Ticket Display #}
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-900">{{ ticket.eventName }}</h2>
+                                <p class="text-gray-600">{{ ticket.eventDate|date('F d, Y') }}</p>
+                            </div>
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                                {% if ticket.ticketType == 'VIP Experience' %}
+                                    bg-purple-100 text-purple-800
+                                {% elseif ticket.ticketType == 'Exclusive Ticket' %}
+                                    bg-blue-100 text-blue-800
+                                {% else %}
+                                    bg-green-100 text-green-800
+                                {% endif %}
+                            ">
+                                {{ ticket.ticketType }}
+                            </span>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between text-sm mb-2">
+                                <span class="text-gray-600">Ticket Price</span>
+                                <span class="font-medium">${{ ticket.price|number_format(2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Status</span>
+                                <span class="text-green-600 font-medium">Valid</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex space-x-3">
+                            <a href="{{ path('ticket_show', {'id': ticket.id}) }}" 
+                               class="flex-1 text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
+                                View Details
+                            </a>
+                            <a href="{{ path('ticket_download', {'id': ticket.id}) }}"
+                               class="flex-1 text-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                Download
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="col-span-full text-center py-12">
+                <div class="text-gray-500 mb-4">
+                    <i class="fas fa-ticket-alt text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium">No Tickets Found</h3>
+                </div>
+                <p class="text-gray-600 mb-4">You haven't purchased any tickets yet.</p>
+                <a href="{{ path('payment_page') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
+                    Book Tickets
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

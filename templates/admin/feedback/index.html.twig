@@ -1,0 +1,131 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Feedback Management{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .table-row {
+            position: relative;
+        }
+        .action-cell {
+            position: relative;
+            overflow: visible;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            position: absolute;
+            right: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: white;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+        .table-row:hover .action-buttons {
+            opacity: 1;
+            right: calc(100% - 10px);
+        }
+        .action-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .edit-button {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .edit-button:hover {
+            background-color: #2563eb;
+        }
+        .delete-button {
+            background-color: #ef4444;
+            color: white;
+        }
+        .delete-button:hover {
+            background-color: #dc2626;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Sample Feedback Management</h1>
+            <div class="space-x-2">
+                <a href="{{ path('admin_feedback_new') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Add Sample Feedback
+                </a>
+            </div>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <span class="block sm:inline">{{ message }}</span>
+            </div>
+        {% endfor %}
+
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comment</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for feedback in feedbacks %}
+                        <tr class="table-row hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ feedback.id }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ feedback.eventName }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ feedback.username }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% for i in 1..5 %}
+                                    <span class="text-{{ i <= feedback.rating ? 'yellow' : 'gray' }}-500">★</span>
+                                {% endfor %}
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">{{ feedback.comment }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ feedback.createdAt|date('Y-m-d H:i') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium action-cell">
+                                <div class="action-buttons">
+                                    <a href="{{ path('admin_feedback_edit', {'id': feedback.id}) }}" 
+                                       class="action-button edit-button">
+                                        Edit
+                                    </a>
+                                    <form method="post" action="{{ path('admin_feedback_delete', {'id': feedback.id}) }}" 
+                                          class="inline" 
+                                          onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ feedback.id) }}">
+                                        <button type="submit" class="action-button delete-button">Delete</button>
+                                    </form>
+                                </div>
+                                <span class="text-gray-400">•••</span>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No sample feedback found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if feedbacks.haveToPaginate is defined and feedbacks.haveToPaginate %}
+            <div class="mt-4">
+                {{ knp_pagination_render(feedbacks) }}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %} 

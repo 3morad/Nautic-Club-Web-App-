@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}Welcome!{% endblock %} - Nautic Club</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        {% block stylesheets %}
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+        {% endblock %}
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+            <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
+        {% endblock %}
+    </head>
+    <body class="bg-gray-50 min-h-screen flex flex-col">
+        <nav class="bg-white shadow-sm">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <a href="/" class="text-xl font-bold text-purple-600">Nautic Club</a>
+                    <div class="hidden md:flex space-x-6">
+                        <a href="{{ path('payment_page') }}" class="text-gray-600 hover:text-purple-600">Book Tickets</a>
+                        <a href="{{ path('ticket_index') }}" class="text-gray-600 hover:text-purple-600">My Tickets</a>
+                        <a href="{{ path('app_feedback_index') }}" class="text-gray-600 hover:text-purple-600">Feedback</a>
+                        <a href="{{ path('admin_dashboard') }}" class="text-gray-600 hover:text-purple-600">Admin</a>
+                    </div>
+                    <button class="md:hidden text-gray-600" id="mobile-menu-button">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+                <!-- Mobile menu -->
+                <div class="md:hidden hidden" id="mobile-menu">
+                    <div class="py-2 space-y-2">
+                        <a href="{{ path('payment_page') }}" class="block py-2 text-gray-600 hover:text-purple-600">Book Tickets</a>
+                        <a href="{{ path('ticket_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">My Tickets</a>
+                        <a href="{{ path('app_feedback_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">Feedback</a>
+                        <a href="{{ path('admin_dashboard') }}" class="block py-2 text-gray-600 hover:text-purple-600">Admin</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="flex-grow">
+            {% block body %}{% endblock %}
+        </main>
+
+        <footer class="bg-white border-t mt-12 py-8">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Nautic Club</h3>
+                        <p class="text-gray-600">Experience the best nautical events and activities with our premium services.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Links</h3>
+                        <ul class="space-y-2">
+                            <li><a href="{{ path('payment_page') }}" class="text-gray-600 hover:text-purple-600">Book Tickets</a></li>
+                            <li><a href="{{ path('ticket_index') }}" class="text-gray-600 hover:text-purple-600">My Tickets</a></li>
+                            <li><a href="{{ path('app_feedback_index') }}" class="text-gray-600 hover:text-purple-600">Feedback</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Contact Us</h3>
+                        <ul class="space-y-2 text-gray-600">
+                            <li><i class="fas fa-map-marker-alt mr-2"></i> 123 Ocean Drive, Beach City</li>
+                            <li><i class="fas fa-phone mr-2"></i> +1 234 567 890</li>
+                            <li><i class="fas fa-envelope mr-2"></i> info@nauticclub.com</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t mt-8 pt-8 text-center text-gray-600">
+                    <p>&copy; {{ "now"|date("Y") }} Nautic Club. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+            document.getElementById('mobile-menu-button').addEventListener('click', function() {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+        </script>
+    </body>
+</html>

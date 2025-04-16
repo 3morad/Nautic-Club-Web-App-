@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ticket Details - {{ ticket.eventName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .ticket-card {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .qr-code {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header with back button -->
+        <div class="flex items-center mb-8">
+            <a href="{{ path('ticket_index') }}" class="text-gray-600 hover:text-purple-600">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Tickets
+            </a>
+        </div>
+
+        <!-- Ticket Card -->
+        <div class="ticket-card p-8 mb-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold mb-2">{{ ticket.eventName }}</h1>
+                <p class="text-lg opacity-90">{{ ticket.eventDate|date('F d, Y') }}</p>
+            </div>
+
+            <!-- QR Code -->
+            <div class="flex justify-center mb-8">
+                <div class="qr-code">
+                    <img src="{{ qr_code_data_uri }}" alt="Ticket QR Code" class="w-48 h-48">
+                </div>
+            </div>
+
+            <!-- Transaction Details -->
+            <div class="space-y-2">
+                <div class="detail-row">
+                    <span class="opacity-75">Event</span>
+                    <span class="font-semibold">{{ ticket.eventName }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="opacity-75">Date</span>
+                    <span class="font-semibold">{{ ticket.eventDate|date('M d, Y') }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="opacity-75">Amount Paid</span>
+                    <span class="font-semibold">${{ ticket.price|number_format(2) }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="opacity-75">Ticket Type</span>
+                    <span class="font-semibold">{{ ticket.ticketType }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="opacity-75">Status</span>
+                    <span class="font-semibold text-green-300">Confirmed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex space-x-4">
+            <a href="{{ path('ticket_download', {'id': ticket.id}) }}" 
+               class="flex-1 bg-purple-600 text-white text-center py-3 rounded-lg font-bold hover:bg-purple-700">
+                Download Ticket
+            </a>
+            <button onclick="shareTicket()" 
+                    class="flex-1 bg-white text-gray-700 text-center py-3 rounded-lg font-bold border border-gray-300 hover:bg-gray-50">
+                Share
+            </button>
+        </div>
+
+        <!-- Similar Events Section -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold mb-4">Similar Events</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Add similar events here if available -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function shareTicket() {
+            if (navigator.share) {
+                navigator.share({
+                    title: '{{ ticket.eventName }} Ticket',
+                    text: 'Check out my ticket for {{ ticket.eventName }} on {{ ticket.eventDate|date("F d, Y") }}!',
+                    url: window.location.href
+                })
+                .catch(console.error);
+            } else {
+                alert('Sharing is not supported on this browser');
+            }
+        }
+    </script>
+{% endblock %} 

@@ -1,0 +1,220 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}{{ ticket.id ? 'Edit' : 'New' }} Ticket{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">{{ ticket.id ? 'Edit' : 'New' }} Ticket</h1>
+            <a href="{{ path('admin_tickets_index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Back to List
+            </a>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                <div class="mb-6">
+                    {{ form_label(form.isSupport, 'Ticket Type', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-2'}}) }}
+                    <div class="flex space-x-4">
+                        {{ form_widget(form.isSupport, {'attr': {'class': 'ticket-type-selector'}}) }}
+                    </div>
+                    {{ form_errors(form.isSupport, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.title, 'Title', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.title, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                    {{ form_errors(form.title, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500', 'rows': '5'}}) }}
+                    {{ form_errors(form.description, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                {# Support ticket fields #}
+                <div class="support-ticket-fields">
+                    <div>
+                        {{ form_label(form.category, 'Category', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.category, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.category, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+
+                    <div>
+                        {{ form_label(form.status, 'Status', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.status, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.status, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+
+                    <div>
+                        {{ form_label(form.priority, 'Priority', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.priority, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.priority, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+                </div>
+
+                {# Event ticket fields #}
+                <div class="event-ticket-fields">
+                    {% if form.ticketType is defined %}
+                    <div>
+                        {{ form_label(form.ticketType, 'Event Ticket Type', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.ticketType, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.ticketType, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+                    {% endif %}
+
+                    {% if form.price is defined %}
+                    <div>
+                        {{ form_label(form.price, 'Price', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.price, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.price, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+                    {% endif %}
+
+                    {% if form.eventName is defined %}
+                    <div>
+                        {{ form_label(form.eventName, 'Event Name', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.eventName, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.eventName, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+                    {% endif %}
+
+                    {% if form.eventDate is defined %}
+                    <div>
+                        {{ form_label(form.eventDate, 'Event Date', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                        {{ form_widget(form.eventDate, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                        {{ form_errors(form.eventDate, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        {{ ticket.id ? 'Update' : 'Create' }}
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ticketTypeInputs = document.querySelectorAll('input[name="ticket[isSupport]"]');
+            const supportFields = document.querySelector('.support-ticket-fields');
+            const eventFields = document.querySelector('.event-ticket-fields');
+            const form = document.querySelector('form');
+            
+            // Make sure Event Ticket is pre-selected
+            const eventTicketRadio = document.querySelector('input[name="ticket[isSupport]"][value="0"]');
+            if (eventTicketRadio) {
+                eventTicketRadio.checked = true;
+            }
+
+            // Initial toggle based on selected value
+            function toggleFields() {
+                const selectedType = document.querySelector('input[name="ticket[isSupport]"]:checked');
+                if (selectedType) {
+                    if (selectedType.value === '1') { // Support ticket
+                        supportFields.style.display = 'block';
+                        eventFields.style.display = 'none';
+                    } else { // Event ticket
+                        supportFields.style.display = 'none';
+                        eventFields.style.display = 'block';
+                        
+                        // Ensure event ticket fields are added to the form if they don't exist yet
+                        const ticketTypeField = document.querySelector('select[name="ticket[ticketType]"]');
+                        if (!ticketTypeField && !document.getElementById('dynamic-fields-loaded')) {
+                            // Create a new form for the reload to avoid submitting all field data
+                            const reloadForm = document.createElement('form');
+                            reloadForm.method = 'POST';
+                            reloadForm.action = window.location.href;
+                            
+                            // Add hidden input for isSupport=0 to indicate event ticket
+                            const supportInput = document.createElement('input');
+                            supportInput.type = 'hidden';
+                            supportInput.name = 'ticket[isSupport]';
+                            supportInput.value = '0';
+                            reloadForm.appendChild(supportInput);
+                            
+                            // Add hidden input for dynamic fields loaded flag
+                            const flagInput = document.createElement('input');
+                            flagInput.type = 'hidden';
+                            flagInput.name = 'dynamic_fields_loaded';
+                            flagInput.value = '1';
+                            reloadForm.appendChild(flagInput);
+                            
+                            // Add to document and submit
+                            document.body.appendChild(reloadForm);
+                            reloadForm.submit();
+                        }
+                    }
+                } else {
+                    // Default to event ticket if nothing is selected
+                    if (eventTicketRadio) {
+                        eventTicketRadio.checked = true;
+                        supportFields.style.display = 'none';
+                        eventFields.style.display = 'block';
+                    }
+                }
+            }
+
+            // Toggle fields on page load
+            toggleFields();
+
+            // Add event listeners to radio buttons
+            ticketTypeInputs.forEach(input => {
+                input.addEventListener('change', toggleFields);
+            });
+            
+            // Ensure the form has all required fields before submission
+            form.addEventListener('submit', function(e) {
+                const selectedType = document.querySelector('input[name="ticket[isSupport]"]:checked');
+                if (!selectedType) {
+                    // If nothing selected, check the Event Ticket radio
+                    eventTicketRadio.checked = true;
+                }
+                
+                if (selectedType && selectedType.value === '0') { // Event ticket
+                    const ticketTypeField = document.querySelector('select[name="ticket[ticketType]"]');
+                    const priceField = document.querySelector('input[name="ticket[price]"]');
+                    const eventNameField = document.querySelector('input[name="ticket[eventName]"]');
+                    const eventDateField = document.querySelector('input[name="ticket[eventDate]"]');
+                    
+                    // If any of the required event ticket fields are missing, prevent submission
+                    if (!ticketTypeField || !priceField || !eventNameField || !eventDateField) {
+                        e.preventDefault();
+                        alert('Please wait while the event ticket fields load, then try again.');
+                        
+                        // Create a new form for the reload to avoid submitting all field data
+                        const reloadForm = document.createElement('form');
+                        reloadForm.method = 'POST';
+                        reloadForm.action = window.location.href;
+                        
+                        // Add hidden input for isSupport=0 to indicate event ticket
+                        const supportInput = document.createElement('input');
+                        supportInput.type = 'hidden';
+                        supportInput.name = 'ticket[isSupport]';
+                        supportInput.value = '0';
+                        reloadForm.appendChild(supportInput);
+                        
+                        // Add hidden input for dynamic fields loaded flag
+                        const flagInput = document.createElement('input');
+                        flagInput.type = 'hidden';
+                        flagInput.name = 'dynamic_fields_loaded';
+                        flagInput.value = '1';
+                        reloadForm.appendChild(flagInput);
+                        
+                        // Add to document and submit
+                        document.body.appendChild(reloadForm);
+                        reloadForm.submit();
+                        return false;
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,47 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}{{ user.id ? 'Edit' : 'New' }} User{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">{{ user.id ? 'Edit' : 'New' }} User</h1>
+            <a href="{{ path('admin_users_index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                Back to List
+            </a>
+        </div>
+
+        <div class="bg-white shadow-md rounded-lg p-6">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                <div>
+                    {{ form_label(form.email, 'Email', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.email, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                    {{ form_errors(form.email, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.plainPassword, 'Password', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.plainPassword, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                    {{ form_errors(form.plainPassword, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                <div>
+                    {{ form_label(form.roles, 'Roles', {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.roles, {'attr': {'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                    {{ form_errors(form.roles, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                <div class="flex items-center">
+                    {{ form_widget(form.isVerified, {'attr': {'class': 'h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded'}}) }}
+                    {{ form_label(form.isVerified, 'Verified', {'label_attr': {'class': 'ml-2 block text-sm text-gray-900'}}) }}
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        {{ user.id ? 'Update' : 'Create' }}
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %} 

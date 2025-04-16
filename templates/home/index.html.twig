@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+<div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-6">Welcome to Nautic Club</h1>
+        <p class="text-xl md:text-2xl mb-8">Experience the best nautical events and activities</p>
+        <a href="{{ path('payment_page') }}" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-100 transition">
+            Book Now
+        </a>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-center mb-12">Featured Events</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {% for event in featured_events %}
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <img src="{{ event.image }}" alt="{{ event.name }}" class="w-full h-48 object-cover">
+                <div class="p-6">
+                    <h3 class="text-xl font-bold mb-2">{{ event.name }}</h3>
+                    <p class="text-gray-600 mb-4">{{ event.description }}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-purple-600">
+                            <i class="far fa-calendar mr-2"></i>{{ event.date|date('M d, Y') }}
+                        </span>
+                        <a href="{{ path('payment_page') }}" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition">
+                            Book
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="bg-gray-100 py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Why Choose Nautic Club?</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-purple-600 text-4xl mb-4">
+                    <i class="fas fa-ship"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Premium Experience</h3>
+                <p class="text-gray-600">Enjoy top-notch service and facilities at all our events.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-purple-600 text-4xl mb-4">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Easy Booking</h3>
+                <p class="text-gray-600">Simple and secure ticket booking process for all events.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow text-center">
+                <div class="text-purple-600 text-4xl mb-4">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Community</h3>
+                <p class="text-gray-600">Join our community of nautical enthusiasts and make new friends.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-16">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="md:flex">
+            <div class="md:w-1/2 p-8">
+                <h2 class="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
+                <p class="text-gray-600 mb-6">Stay updated with our latest events and special offers.</p>
+                
+                <form class="flex flex-col md:flex-row gap-4">
+                    <input type="email" placeholder="Your email address" class="flex-grow px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600">
+                    <button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-purple-700 transition">
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+            <div class="md:w-1/2 bg-purple-100 p-8 flex items-center justify-center">
+                <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Newsletter" class="rounded-lg shadow-lg">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

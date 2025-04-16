@@ -1,0 +1,127 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Download Ticket - {{ ticket.eventName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-ticket, #printable-ticket * {
+                visibility: visible;
+            }
+            #printable-ticket {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+        .ticket-container {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .ticket-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('/path/to/pattern.png') repeat;
+            opacity: 0.1;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Print/Download Controls -->
+    <div class="max-w-2xl mx-auto mb-8 no-print">
+        <div class="flex items-center justify-between">
+            <a href="{{ path('ticket_show', {'id': ticket.id}) }}" class="text-gray-600 hover:text-purple-600">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Ticket
+            </a>
+            <button onclick="window.print()" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                <i class="fas fa-print mr-2"></i> Print Ticket
+            </button>
+        </div>
+    </div>
+
+    <!-- Printable Ticket -->
+    <div id="printable-ticket" class="max-w-2xl mx-auto">
+        <div class="ticket-container p-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold mb-2">{{ ticket.eventName }}</h1>
+                <p class="text-xl opacity-90">{{ ticket.eventDate|date('F d, Y') }}</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- QR Code -->
+                <div class="flex justify-center items-center">
+                    <div class="bg-white p-4 rounded-lg">
+                        <img src="{{ qrCode }}" alt="Ticket QR Code" class="w-48 h-48">
+                    </div>
+                </div>
+
+                <!-- Ticket Details -->
+                <div class="space-y-4">
+                    <div class="border-b border-white/10 pb-4">
+                        <h2 class="text-lg opacity-75">Event Details</h2>
+                        <p class="text-2xl font-bold">{{ ticket.eventName }}</p>
+                        <p class="text-lg">{{ ticket.eventDate|date('l, F d, Y') }}</p>
+                    </div>
+
+                    <div class="border-b border-white/10 pb-4">
+                        <h2 class="text-lg opacity-75">Ticket Type</h2>
+                        <p class="text-2xl font-bold">{{ ticket.ticketType }}</p>
+                        <p class="text-lg">${{ ticket.price|number_format(2) }}</p>
+                    </div>
+
+                    <div>
+                        <h2 class="text-lg opacity-75">Ticket ID</h2>
+                        <p class="text-xl font-mono">{{ ticket.id }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-8 border-t border-white/10 text-center">
+                <p class="opacity-75">This ticket is valid for one-time entry only.</p>
+                <p class="text-sm opacity-60 mt-2">Powered by Nautic Club</p>
+            </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="mt-8 text-sm text-gray-600">
+            <h3 class="font-bold mb-2">Terms and Conditions:</h3>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>This ticket is valid only for the specified event and date.</li>
+                <li>Please arrive at least 30 minutes before the event.</li>
+                <li>No refunds or exchanges are permitted.</li>
+                <li>The QR code must be presented at entry for validation.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Auto-print when the page loads (optional)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Uncomment the next line to enable auto-print
+            // window.print();
+        });
+    </script>
+{% endblock %} 

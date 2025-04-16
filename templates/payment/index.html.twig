@@ -1,0 +1,427 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .ticket-type {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .ticket-type:hover {
+            border-color: #6366f1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .selected {
+            border-color: #6366f1;
+            background-color: #f3f4f6;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">Payment Method</h1>
+    
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Select Your Ticket Type</h2>
+        {% for ticket in ticket_types %}
+            <div class="ticket-type" data-ticket-type="{{ ticket.name|lower|replace({' ': '-'}) }}" data-price="{{ ticket.price }}" data-name="{{ ticket.name }}">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold">{{ ticket.name }}</h3>
+                        <p class="text-gray-600">{{ ticket.description }}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-bold text-purple-600">${{ ticket.price }}</span>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <div id="ticket-error" class="error-message hidden">Please select a ticket type</div>
+    </div>
+
+    <form id="payment-form" class="max-w-md mx-auto">
+        <div class="mb-6">
+            <div class="flex justify-center space-x-4 mb-4">
+                <button type="button" class="payment-method px-4 py-2 border rounded-lg active" data-method="credit-card">
+                    <i class="fas fa-credit-card mr-2"></i>Credit Card
+                </button>
+                <button type="button" class="payment-method px-4 py-2 border rounded-lg" data-method="debit-card">
+                    <i class="fas fa-credit-card mr-2"></i>Debit Card
+                </button>
+                <button type="button" class="payment-method px-4 py-2 border rounded-lg" data-method="paypal">
+                    <i class="fab fa-paypal mr-2"></i>PayPal
+                </button>
+            </div>
+        </div>
+
+        <!-- Credit/Debit Card Fields -->
+        <div id="card-details">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Card Number</label>
+                <input type="text" id="card-number" class="w-full border rounded-lg p-2" placeholder="1234 5678 9012 3456" maxlength="19">
+                <div id="card-number-error" class="error-message hidden">Please enter a valid card number</div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-700 mb-2">Expiry Date</label>
+                    <input type="text" id="expiry-date" class="w-full border rounded-lg p-2" placeholder="MM/YY" maxlength="5">
+                    <div id="expiry-date-error" class="error-message hidden">Please enter a valid expiry date</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2">CVV</label>
+                    <input type="text" id="cvv" class="w-full border rounded-lg p-2" placeholder="123" maxlength="4">
+                    <div id="cvv-error" class="error-message hidden">Please enter a valid CVV</div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Name on Card</label>
+                <input type="text" id="card-name" class="w-full border rounded-lg p-2" placeholder="John Smith">
+                <div id="card-name-error" class="error-message hidden">Please enter the name on your card</div>
+            </div>
+        </div>
+
+        <!-- PayPal Fields -->
+        <div id="paypal-details" class="hidden">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Email</label>
+                <input type="email" id="paypal-email" class="w-full border rounded-lg p-2" placeholder="your-email@example.com">
+                <div id="paypal-email-error" class="error-message hidden">Please enter a valid email address</div>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Password</label>
+                <input type="password" id="paypal-password" class="w-full border rounded-lg p-2" placeholder="PayPal password">
+                <div id="paypal-password-error" class="error-message hidden">Please enter your PayPal password</div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="flex items-center">
+                <input type="checkbox" id="save-payment" class="mr-2">
+                <span class="text-gray-700">Save payment details for future use</span>
+            </label>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="border-t pt-4 mb-4">
+            <div class="flex justify-between mb-2">
+                <span>Selected Ticket</span>
+                <span id="ticket-name">None</span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Ticket Price</span>
+                <span id="ticket-price">$0.00</span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span>Tax (10%)</span>
+                <span id="tax-amount">$0.00</span>
+            </div>
+            <div class="flex justify-between font-bold">
+                <span>Total</span>
+                <span id="total-amount">$0.00</span>
+            </div>
+        </div>
+
+        <button type="submit" id="payment-button" class="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700">
+            Proceed to Payment
+        </button>
+
+        <div class="mt-4 text-center text-sm text-gray-600">
+            <i class="fas fa-lock mr-2"></i>Secure payment processing
+        </div>
+    </form>
+
+    <div class="mt-8 grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+        <div class="text-center">
+            <div class="w-12 h-12 mx-auto mb-2 flex items-center justify-center bg-green-100 rounded-full">
+                <i class="fas fa-shield-alt text-green-500"></i>
+            </div>
+            <h3 class="font-semibold">Verified Security</h3>
+        </div>
+        <div class="text-center">
+            <div class="w-12 h-12 mx-auto mb-2 flex items-center justify-center bg-purple-100 rounded-full">
+                <i class="fas fa-lock text-purple-500"></i>
+            </div>
+            <h3 class="font-semibold">SSL Encrypted</h3>
+        </div>
+        <div class="text-center">
+            <div class="w-12 h-12 mx-auto mb-2 flex items-center justify-center bg-orange-100 rounded-full">
+                <i class="fas fa-credit-card text-orange-500"></i>
+            </div>
+            <h3 class="font-semibold">PCI Compliant</h3>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const ticketTypes = document.querySelectorAll('.ticket-type');
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            const cardDetails = document.getElementById('card-details');
+            const paypalDetails = document.getElementById('paypal-details');
+            const form = document.getElementById('payment-form');
+            const paymentButton = document.getElementById('payment-button');
+            
+            // Form fields
+            const cardNumber = document.getElementById('card-number');
+            const expiryDate = document.getElementById('expiry-date');
+            const cvv = document.getElementById('cvv');
+            const cardName = document.getElementById('card-name');
+            const paypalEmail = document.getElementById('paypal-email');
+            const paypalPassword = document.getElementById('paypal-password');
+            
+            // Error elements
+            const ticketError = document.getElementById('ticket-error');
+            const cardNumberError = document.getElementById('card-number-error');
+            const expiryDateError = document.getElementById('expiry-date-error');
+            const cvvError = document.getElementById('cvv-error');
+            const cardNameError = document.getElementById('card-name-error');
+            const paypalEmailError = document.getElementById('paypal-email-error');
+            const paypalPasswordError = document.getElementById('paypal-password-error');
+            
+            // Summary elements
+            const ticketNameEl = document.getElementById('ticket-name');
+            const ticketPriceEl = document.getElementById('ticket-price');
+            const taxAmountEl = document.getElementById('tax-amount');
+            const totalAmountEl = document.getElementById('total-amount');
+            
+            let selectedTicket = null;
+            let selectedPaymentMethod = 'credit-card';
+            
+            // Select the first ticket by default
+            if (ticketTypes.length > 0) {
+                const firstTicket = ticketTypes[0];
+                firstTicket.classList.add('selected');
+                selectedTicket = {
+                    type: firstTicket.dataset.ticketType,
+                    name: firstTicket.dataset.name,
+                    price: parseFloat(firstTicket.dataset.price)
+                };
+                updatePrices();
+            }
+
+            // Ticket selection
+            ticketTypes.forEach(ticket => {
+                ticket.addEventListener('click', () => {
+                    ticketTypes.forEach(t => t.classList.remove('selected'));
+                    ticket.classList.add('selected');
+                    selectedTicket = {
+                        type: ticket.dataset.ticketType,
+                        name: ticket.dataset.name,
+                        price: parseFloat(ticket.dataset.price)
+                    };
+                    updatePrices();
+                    ticketError.classList.add('hidden');
+                });
+            });
+
+            // Payment method selection
+            paymentMethods.forEach(method => {
+                method.addEventListener('click', () => {
+                    paymentMethods.forEach(m => {
+                        m.classList.remove('bg-purple-600', 'text-white', 'active');
+                    });
+                    method.classList.add('bg-purple-600', 'text-white', 'active');
+                    selectedPaymentMethod = method.dataset.method;
+                    
+                    // Toggle between card and PayPal fields
+                    if (selectedPaymentMethod === 'paypal') {
+                        cardDetails.classList.add('hidden');
+                        paypalDetails.classList.remove('hidden');
+                    } else {
+                        cardDetails.classList.remove('hidden');
+                        paypalDetails.classList.add('hidden');
+                    }
+                    
+                    // Update button text
+                    paymentButton.textContent = selectedPaymentMethod === 'paypal' 
+                        ? 'Continue to PayPal' 
+                        : 'Proceed to Payment';
+                });
+            });
+
+            // Format card number with spaces
+            cardNumber.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+                let formattedValue = '';
+                
+                for (let i = 0; i < value.length; i++) {
+                    if (i > 0 && i % 4 === 0) {
+                        formattedValue += ' ';
+                    }
+                    formattedValue += value[i];
+                }
+                
+                e.target.value = formattedValue;
+            });
+
+            // Format expiry date (MM/YY)
+            expiryDate.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 0) {
+                    if (value.length <= 2) {
+                        e.target.value = value;
+                    } else {
+                        e.target.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                    }
+                }
+            });
+
+            // Format CVV (numbers only)
+            cvv.addEventListener('input', function(e) {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+
+            // Price calculations
+            function updatePrices() {
+                if (!selectedTicket) {
+                    ticketNameEl.textContent = 'None';
+                    ticketPriceEl.textContent = '$0.00';
+                    taxAmountEl.textContent = '$0.00';
+                    totalAmountEl.textContent = '$0.00';
+                    return;
+                }
+                
+                const ticketPrice = selectedTicket.price;
+                const taxAmount = ticketPrice * 0.1;
+                const totalAmount = ticketPrice + taxAmount;
+
+                ticketNameEl.textContent = selectedTicket.name;
+                ticketPriceEl.textContent = `$${ticketPrice.toFixed(2)}`;
+                taxAmountEl.textContent = `$${taxAmount.toFixed(2)}`;
+                totalAmountEl.textContent = `$${totalAmount.toFixed(2)}`;
+            }
+
+            // Form validation
+            function validateForm() {
+                let isValid = true;
+                
+                // Validate ticket selection
+                if (!selectedTicket) {
+                    ticketError.classList.remove('hidden');
+                    isValid = false;
+                } else {
+                    ticketError.classList.add('hidden');
+                }
+                
+                // Validate payment method fields - simplified for demo
+                if (selectedPaymentMethod === 'paypal') {
+                    // PayPal validation - simplified for demo
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!paypalEmail.value || !emailRegex.test(paypalEmail.value)) {
+                        paypalEmailError.classList.remove('hidden');
+                        isValid = false;
+                    } else {
+                        paypalEmailError.classList.add('hidden');
+                    }
+                } else {
+                    // Credit/Debit card validation - simplified for demo
+                    if (!cardName.value) {
+                        cardNameError.classList.remove('hidden');
+                        isValid = false;
+                    } else {
+                        cardNameError.classList.add('hidden');
+                    }
+                }
+                
+                return isValid;
+            }
+
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!validateForm()) {
+                    // Scroll to first error
+                    const firstError = document.querySelector('.error-message:not(.hidden)');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+                
+                // Disable the button during submission
+                paymentButton.disabled = true;
+                paymentButton.textContent = 'Processing...';
+                
+                // Prepare form data
+                const formData = {
+                    ticketType: selectedTicket.type,
+                    ticketName: selectedTicket.name,
+                    amount: selectedTicket.price,
+                    paymentMethod: selectedPaymentMethod.toUpperCase(),
+                };
+                
+                // Add payment method specific fields
+                if (selectedPaymentMethod === 'paypal') {
+                    formData.paypalEmail = paypalEmail.value;
+                    // Don't send password for security - just demo
+                } else {
+                    formData.cardNumber = cardNumber.value || '4444333322221111'; // Dummy data for demo
+                    formData.expiryDate = expiryDate.value || '12/25'; // Dummy data for demo
+                    formData.cvv = cvv.value || '123'; // Dummy data for demo
+                    formData.cardName = cardName.value;
+                }
+                
+                formData.savePayment = document.getElementById('save-payment').checked;
+                
+                try {
+                    console.log('Sending payment data:', formData);
+                    
+                    const response = await fetch('/payment/process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+                    console.log('Payment response:', result);
+                    
+                    if (result.success) {
+                        window.location.href = `/payment/success/${result.transactionId}`;
+                    } else {
+                        // Re-enable the button
+                        paymentButton.disabled = false;
+                        paymentButton.textContent = selectedPaymentMethod === 'paypal' ? 'Continue to PayPal' : 'Proceed to Payment';
+                        
+                        alert('Payment failed: ' + (result.error || 'Please try again'));
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    
+                    // Re-enable the button
+                    paymentButton.disabled = false;
+                    paymentButton.textContent = selectedPaymentMethod === 'paypal' ? 'Continue to PayPal' : 'Proceed to Payment';
+                    
+                    alert('An error occurred while processing your payment. Please try again.');
+                }
+            });
+            
+            // Initialize prices
+            updatePrices();
+        });
+    </script>
+{% endblock %} 

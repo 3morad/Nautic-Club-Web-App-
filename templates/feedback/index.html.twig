@@ -1,0 +1,208 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Feedback - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .star-rating {
+            display: inline-flex;
+            flex-direction: row-reverse;
+        }
+        .star-rating input {
+            display: none;
+        }
+        .star-rating label {
+            cursor: pointer;
+            font-size: 2rem;
+            padding: 0 0.1em;
+            color: #ddd;
+        }
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #ffd700;
+        }
+        .photo-upload {
+            border: 2px dashed #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .photo-upload:hover {
+            border-color: #6366f1;
+            background-color: #f3f4f6;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold mb-4">Customer Feedback</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">See what our customers are saying about our events. Overall satisfaction rating: <span class="font-bold text-purple-600">{{ averageRating|number_format(1) }}/5</span></p>
+        </div>
+
+        {# Featured Event Feedback (Admin Sample) #}
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-center">Featured Event Reviews</h2>
+            
+            {% if is_granted('ROLE_ADMIN') %}
+                {% set adminFeedback = feedbacks|filter(f => f.isAdmin == true)|slice(0, 3) %}
+            {% else %}
+                {% set adminFeedback = [] %}
+            {% endif %}
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for feedback in adminFeedback %}
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="bg-purple-100 px-4 py-2">
+                            <h3 class="font-bold text-purple-700">{{ feedback.eventName }}</h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="text-yellow-500 mr-2">
+                                    {% for i in 1..5 %}
+                                        <span>{% if i <= feedback.rating %}★{% else %}☆{% endif %}</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="text-gray-700 text-sm">{{ feedback.rating }}/5</div>
+                            </div>
+                            
+                            <blockquote class="italic text-gray-600 mb-4">"{{ feedback.comment }}"</blockquote>
+                            
+                            <div class="text-sm text-gray-500">
+                                {{ feedback.username }} - {{ feedback.createdAt|date('M d, Y') }}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-span-full text-center py-8 text-gray-500">
+                        No featured reviews available at this time.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Regular User Feedback #}
+        <div>
+            <h2 class="text-2xl font-bold mb-6 text-center">Community Feedback</h2>
+            
+            {% if feedbacksByEvent|length > 0 %}
+                {% for eventName, eventFeedbacks in feedbacksByEvent %}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 bg-blue-50 p-3 rounded-lg">{{ eventName }}</h3>
+                        
+                        <div class="grid md:grid-cols-2 gap-6">
+                            {% for feedback in eventFeedbacks %}
+                                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                                    <div class="p-6">
+                                        <div class="flex justify-between mb-4">
+                                            <div class="text-yellow-500">
+                                                {% for i in 1..5 %}
+                                                    <span>{% if i <= feedback.rating %}★{% else %}☆{% endif %}</span>
+                                                {% endfor %}
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                {{ feedback.createdAt|date('M d, Y') }}
+                                            </div>
+                                        </div>
+                                        
+                                        <blockquote class="text-gray-800 mb-4">{{ feedback.comment }}</blockquote>
+                                        
+                                        <div class="text-sm font-semibold">
+                                            {{ feedback.username }}
+                                            {% if feedback.transaction %}
+                                                <span class="text-sm font-normal text-gray-500 ml-2">Verified Purchase</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    No feedback available yet. Be the first to leave your review!
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="mt-12 text-center">
+            <a href="{{ path('app_feedback_new') }}" class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700">
+                <i class="fas fa-comment-alt mr-2"></i> Share Your Feedback
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('feedback-form');
+            const photoUpload = document.getElementById('photo-upload');
+            const photoInput = document.getElementById('photo-input');
+            const photoPreview = document.getElementById('photo-preview');
+            
+            // Photo upload handling
+            photoUpload.addEventListener('click', () => photoInput.click());
+            
+            photoInput.addEventListener('change', function() {
+                photoPreview.innerHTML = '';
+                [...this.files].forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'relative';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" class="w-full h-24 object-cover rounded">
+                            <button type="button" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                ×
+                            </button>
+                        `;
+                        photoPreview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            // Form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const data = {
+                    rating: formData.get('rating'),
+                    username: formData.get('username'),
+                    comment: formData.get('comment'),
+                };
+
+                try {
+                    const response = await fetch('/feedback/submit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Thank you for your feedback!');
+                        window.location.href = '/';
+                    } else {
+                        alert('Failed to submit feedback. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        });
+    </script>
+{% endblock %} 
