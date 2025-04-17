@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Add New User - NautiClub{% endblock %}
+
+{% block body %}
+<div class="form-container">
+    <h2>Add New User</h2>
+
+    <form method="post" autocomplete="off" class="styled-form">
+        {# Prevent browser autofill with hidden fake fields #}
+        <input type="text" name="fakeuser" style="display:none">
+        <input type="password" name="fakepass" style="display:none">
+
+        {{ form_start(form, {'attr': {'autocomplete': 'off'}}) }}
+            {{ form_row(form.username) }}
+            {{ form_row(form.password) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.first_name) }}
+            {{ form_row(form.last_name) }}
+            {{ form_row(form.status) }}
+            {{ form_row(form.user_type) }}
+
+            <button type="submit" class="submit-btn">Create User</button>
+        {{ form_end(form) }}
+    </form>
+</div>
+
+<style>
+    .form-container {
+        background: white;
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 35px;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 100, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #0077cc;
+        margin-bottom: 25px;
+    }
+
+    .styled-form label {
+        font-weight: 600;
+        color: #444;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .styled-form input,
+    .styled-form select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-bottom: 18px;
+        font-size: 14px;
+    }
+
+    .styled-form input:focus,
+    .styled-form select:focus {
+        border-color: #0077cc;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 119, 204, 0.3);
+    }
+
+    .submit-btn {
+        background-color: #0077cc;
+        color: white;
+        padding: 12px;
+        border: none;
+        width: 100%;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 16px;
+        transition: background 0.2s ease;
+        cursor: pointer;
+    }
+
+    .submit-btn:hover {
+        background-color: #005fa3;
+    }
+</style>
+{% endblock %}

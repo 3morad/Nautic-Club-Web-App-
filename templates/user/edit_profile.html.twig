@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Profile - NautiClub{% endblock %}
+
+{% block body %}
+<style>
+    .profile-edit-box {
+        max-width: 500px;
+        margin: 60px auto;
+        background-color: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 119, 204, 0.1);
+    }
+
+    .profile-edit-box h2 {
+        text-align: center;
+        color: #0077cc;
+        margin-bottom: 25px;
+        font-weight: bold;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    label {
+        font-weight: 600;
+        color: #333;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    input:focus {
+        border-color: #0077cc;
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 119, 204, 0.3);
+    }
+
+    .btn-primary {
+        background-color: #0077cc;
+        border: none;
+        color: white;
+        padding: 12px;
+        width: 100%;
+        border-radius: 6px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-primary:hover {
+        background-color: #005fa3;
+    }
+
+    .btn-link {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        color: #0077cc;
+        text-decoration: none;
+        font-size: 0.95em;
+    }
+
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="profile-edit-box">
+    <h2>Edit Your Profile</h2>
+
+    {{ form_start(form, { 'attr': {'autocomplete': 'off'} }) }}
+        {{ form_row(form.username) }}
+        {{ form_row(form.first_name) }}
+        {{ form_row(form.last_name) }}
+        {{ form_row(form.password) }}
+
+        <button type="submit" class="btn-primary">Save Changes</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('user_profile') }}" class="btn-link">← Back to Profile</a>
+</div>
+{% endblock %}
