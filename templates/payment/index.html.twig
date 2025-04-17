@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Book Tickets{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Book Tickets</h1>
+    
+    <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Select Event</h2>
+        
+        <div class="mb-6">
+            <label for="event" class="block text-sm font-medium text-gray-700 mb-1">Event</label>
+            <select id="event" name="event" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                <option value="">Select an event</option>
+                <option value="1">Summer Sailing Competition - June 15, 2023</option>
+                <option value="2">Yacht Parade - July 4, 2023</option>
+                <option value="3">Coastal Wildlife Tour - August 12, 2023</option>
+            </select>
+        </div>
+        
+        <div class="mb-6">
+            <label for="ticket_type" class="block text-sm font-medium text-gray-700 mb-1">Ticket Type</label>
+            <select id="ticket_type" name="ticket_type" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                <option value="">Select ticket type</option>
+                <option value="standard">Standard ($25)</option>
+                <option value="premium">Premium ($50)</option>
+                <option value="vip">VIP ($100)</option>
+            </select>
+        </div>
+        
+        <div class="mb-6">
+            <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+            <input type="number" id="quantity" name="quantity" min="1" max="10" value="1" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+        </div>
+    </div>
+    
+    <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Payment Information</h2>
+        
+        <div class="mb-6">
+            <label for="card_name" class="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
+            <input type="text" id="card_name" name="card_name" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="John Doe">
+        </div>
+        
+        <div class="mb-6">
+            <label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+            <input type="text" id="card_number" name="card_number" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="4242 4242 4242 4242">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div>
+                <label for="expiry" class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
+                <input type="text" id="expiry" name="expiry" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="MM/YY">
+            </div>
+            <div>
+                <label for="cvc" class="block text-sm font-medium text-gray-700 mb-1">CVC</label>
+                <input type="text" id="cvc" name="cvc" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="123">
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Order Summary</h2>
+        
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Ticket Price</span>
+            <span class="font-medium">$25.00</span>
+        </div>
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Quantity</span>
+            <span class="font-medium">1</span>
+        </div>
+        <div class="flex justify-between mb-2">
+            <span class="text-gray-600">Booking Fee</span>
+            <span class="font-medium">$2.50</span>
+        </div>
+        <div class="border-t pt-2 mt-2 flex justify-between">
+            <span class="font-semibold">Total</span>
+            <span class="font-bold">$27.50</span>
+        </div>
+    </div>
+    
+    <div class="flex justify-end">
+        <button type="button" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md">
+            Complete Purchase
+        </button>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Events{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Events</h1>
+            <a href="{{ path('app_event_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Create new Event
+            </a>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        <div class="card shadow">
+            <div class="card-body">
+                {% if events|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for event in events %}
+                                <tr>
+                                    <td>{{ event.name }}</td>
+                                    <td>{{ event.eventDate ? event.eventDate|date('Y-m-d H:i') : '' }}</td>
+                                    <td>{{ event.locationWeather ? event.locationWeather.name : '' }}</td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ path('app_event_show', {'id': event.id}) }}" class="btn btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ path('app_event_edit', {'id': event.id}) }}" class="btn btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ event.id }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Delete Modal -->
+                                        <div class="modal fade" id="deleteModal{{ event.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ event.id }}" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ event.id }}">Confirm Delete</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body text-start">
+                                                        Are you sure you want to delete the event "{{ event.name }}"?
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <form method="post" action="{{ path('app_event_delete', {'id': event.id}) }}" class="d-inline">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                                            <button class="btn btn-danger">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">No events found. Create your first event!</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <p class="text-muted mb-4">There are no events yet.</p>
+                        <a href="{{ path('app_event_new') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Create your first event
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %} 

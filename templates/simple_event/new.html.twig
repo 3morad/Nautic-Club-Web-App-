@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Event{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-purple-600 flex items-center">
+                <i class="fas fa-plus-circle mr-3"></i>Create New Event
+            </h1>
+            <a href="{{ path('simple_event_index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Back to List
+            </a>
+        </div>
+
+        {% for message in app.flashes('error') %}
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md" role="alert">
+                <p class="font-medium">{{ message }}</p>
+            </div>
+        {% endfor %}
+
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="md:flex">
+                <!-- Main Form Section -->
+                <div class="md:w-3/5 p-6">
+                    <form method="post" action="{{ path('simple_event_new') }}" enctype="multipart/form-data" class="space-y-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Event Name</label>
+                            <input type="text" id="name" name="name" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea id="description" name="description" rows="5"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                                      placeholder="Describe your event..."></textarea>
+                        </div>
+                        
+                        <div>
+                            <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+                            <input type="datetime-local" id="date" name="date" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                        </div>
+                        
+                        <div>
+                            <label for="location_id" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                            <select id="location_id" name="location_id" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                                <option value="">-- Select a location --</option>
+                                {% for location in locations %}
+                                    <option value="{{ location.id }}">
+                                        {{ location.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                </div>
+                
+                <!-- Image Upload Section -->
+                <div class="md:w-2/5 bg-gray-50 p-6 border-t md:border-t-0 md:border-l border-gray-200">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Event Image</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                                <input type="file" id="event_image" name="event_image" accept="image/*" class="hidden">
+                                <label for="event_image" class="cursor-pointer">
+                                    <div class="py-4 flex flex-col items-center">
+                                        <i class="fas fa-cloud-upload-alt text-gray-400 text-4xl mb-3"></i>
+                                        <span class="text-sm font-medium text-purple-600">Click to upload an image</span>
+                                        <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div id="file-name" class="text-sm text-gray-500 mt-2"></div>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-200">
+                            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex items-center justify-center">
+                                <i class="fas fa-rocket mr-2"></i>Create Event
+                            </button>
+                            
+                            <div class="mt-4">
+                                <a href="{{ path('simple_event_index') }}" class="block text-center w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Display selected file name and preview
+        document.getElementById('event_image').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name || 'No file selected';
+            document.getElementById('file-name').textContent = fileName;
+            
+            // Preview image if available
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imgPreview = document.createElement('div');
+                    imgPreview.className = 'mt-3';
+                    imgPreview.innerHTML = `
+                        <p class="text-sm font-medium text-gray-700 mb-1">Preview:</p>
+                        <img src="${event.target.result}" class="w-full h-auto max-h-32 object-contain rounded-md border border-gray-200" alt="Preview">
+                    `;
+                    
+                    const existingPreview = document.querySelector('#file-name + div');
+                    if (existingPreview) {
+                        existingPreview.remove();
+                    }
+                    
+                    document.getElementById('file-name').after(imgPreview);
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    </script>
+{% endblock %} 

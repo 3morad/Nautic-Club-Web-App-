@@ -1,0 +1,224 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% if is_edit %}Edit Location{% else %}New Location{% endif %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #map {
+            height: 450px;
+            width: 100%;
+            border-radius: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-purple-600 flex items-center">
+                <i class="fas fa-map-marker-alt mr-3"></i>{% if is_edit %}Edit Location{% else %}Add New Location{% endif %}
+            </h1>
+            <a href="{{ path('simple_location_index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Locations
+            </a>
+        </div>
+        
+        {% if success_message %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
+                <p class="font-medium">{{ success_message }}</p>
+            </div>
+        {% endif %}
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Map Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-globe-americas text-purple-500 mr-2"></i>
+                        Interactive Map
+                    </h2>
+                    <div id="map" class="shadow border border-gray-200"></div>
+                    <p class="text-gray-600 text-sm mt-3 italic">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Click anywhere on the map to set location coordinates.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Form Section -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-purple-500 mr-2"></i>
+                        Location Details
+                    </h2>
+                    
+                    <form method="post" action="{{ is_edit ? path('simple_location_new', {'edit': location.id}) : path('simple_location_new') }}" class="space-y-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
+                            <input type="text" id="name" name="name" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                                   value="{{ location ? location.name : '' }}">
+                        </div>
+                        
+                        <div>
+                            <label for="region" class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                            <input type="text" id="region" name="region" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                                   value="{{ location ? location.region : '' }}">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="latitude" class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-map-pin text-gray-400"></i>
+                                    </div>
+                                    <input type="number" id="latitude" name="latitude" step="0.000001" required
+                                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                                           value="{{ location ? location.latitude : '' }}">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="longitude" class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-map-pin text-gray-400"></i>
+                                    </div>
+                                    <input type="number" id="longitude" name="longitude" step="0.000001" required
+                                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
+                                           value="{{ location ? location.longitude : '' }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4 mt-4">
+                            <h3 class="text-lg font-medium text-gray-800 mb-3">Weather Information</h3>
+                            
+                            <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                                <div class="flex items-start">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h4 class="text-sm font-medium text-blue-800">Automatic Weather Data</h4>
+                                        <p class="text-sm text-blue-700 mt-1">
+                                            Weather data will be automatically fetched from OpenWeatherMap 
+                                            based on the coordinates you provide.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if location and location.updatedAt %}
+                            <div class="rounded-lg border border-gray-200 p-4">
+                                <div class="flex items-center">
+                                    <div class="mr-4">
+                                        {% if location.weatherCondition|lower == 'sunny' %}
+                                            <i class="fas fa-sun text-3xl text-yellow-500"></i>
+                                        {% elseif location.weatherCondition|lower == 'cloudy' %}
+                                            <i class="fas fa-cloud text-3xl text-gray-500"></i>
+                                        {% elseif location.weatherCondition|lower == 'rainy' %}
+                                            <i class="fas fa-cloud-rain text-3xl text-blue-500"></i>
+                                        {% elseif location.weatherCondition|lower == 'snowy' %}
+                                            <i class="fas fa-snowflake text-3xl text-blue-300"></i>
+                                        {% elseif location.weatherCondition|lower == 'stormy' %}
+                                            <i class="fas fa-bolt text-3xl text-yellow-600"></i>
+                                        {% elseif location.weatherCondition|lower == 'foggy' %}
+                                            <i class="fas fa-smog text-3xl text-gray-400"></i>
+                                        {% else %}
+                                            <i class="fas fa-cloud text-3xl text-gray-500"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">Current Weather:</div>
+                                        <div class="text-lg font-bold">{{ location.temperature }}°C, {{ location.weatherCondition }}</div>
+                                        <div class="text-xs text-gray-500">Last updated: {{ location.updatedAt|date('M d, Y \\a\\t g:i A') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex justify-end pt-4 border-t border-gray-200">
+                            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg shadow transition flex items-center">
+                                <i class="fas fa-save mr-2"></i>{% if is_edit %}Update{% else %}Save{% endif %} Location
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            var initialLat = {{ location ? location.latitude : 48.8566 }};
+            var initialLng = {{ location ? location.longitude : 2.3522 }};
+            var initialZoom = {{ location ? 13 : 5 }};
+            
+            var map = L.map('map').setView([initialLat, initialLng], initialZoom);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Variable to store marker
+            var marker;
+            
+            // Add initial marker if editing
+            {% if location %}
+            marker = L.marker([initialLat, initialLng]).addTo(map);
+            {% endif %}
+            
+            // Function to update marker and form fields
+            function updateLocation(lat, lng) {
+                // Remove existing marker if any
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                
+                // Add marker at clicked position
+                marker = L.marker([lat, lng]).addTo(map);
+                
+                // Update form fields
+                document.getElementById('latitude').value = lat.toFixed(6);
+                document.getElementById('longitude').value = lng.toFixed(6);
+            }
+            
+            // Handle map click events
+            map.on('click', function(e) {
+                updateLocation(e.latlng.lat, e.latlng.lng);
+            });
+            
+            // Check if the browser supports geolocation (only for new locations)
+            {% if not location %}
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    
+                    // Set map view to user's location
+                    map.setView([lat, lng], 10);
+                    
+                    // Set the default marker and form values
+                    updateLocation(lat, lng);
+                }, function() {
+                    // Geolocation failed, keep default view
+                });
+            }
+            {% endif %}
+        });
+    </script>
+{% endblock %} 

@@ -1,0 +1,181 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Locations{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-purple-600 flex items-center">
+            <i class="fas fa-map-marked-alt mr-3"></i>Locations
+        </h1>
+        <a href="{{ path('simple_location_new') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+            <i class="fas fa-plus-circle mr-2"></i>Add Location
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
+            <p class="font-medium">{{ message }}</p>
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('info') %}
+        <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-md" role="alert">
+            <p class="font-medium">{{ message }}</p>
+        </div>
+    {% endfor %}
+
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        {% if locations|length > 0 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                {% for location in locations %}
+                    <div class="bg-white border border-gray-200 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+                        <div class="p-4 bg-gray-50 border-b">
+                            <h3 class="text-xl font-semibold text-gray-800">{{ location.name }}</h3>
+                            <p class="text-gray-600">{{ location.region }}</p>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            <div class="flex items-center text-sm">
+                                <i class="fas fa-map-pin text-purple-500 w-5"></i>
+                                <span class="ml-2">{{ location.latitude|number_format(4) }}, {{ location.longitude|number_format(4) }}</span>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <i class="fas fa-temperature-high text-purple-500 w-5"></i>
+                                <div class="ml-2 inline-flex items-center">
+                                    <span class="px-2.5 py-1 rounded-full text-sm 
+                                    {% if location.weatherCondition|lower == 'sunny' %}bg-yellow-100 text-yellow-800{% endif %}
+                                    {% if location.weatherCondition|lower == 'cloudy' %}bg-gray-100 text-gray-800{% endif %}
+                                    {% if location.weatherCondition|lower == 'rainy' %}bg-blue-100 text-blue-800{% endif %}
+                                    {% if location.weatherCondition|lower == 'snowy' %}bg-indigo-100 text-indigo-800{% endif %}
+                                    {% if location.weatherCondition|lower == 'stormy' %}bg-red-100 text-red-800{% endif %}
+                                    {% if location.weatherCondition|lower == 'foggy' %}bg-gray-100 text-gray-800{% endif %}
+                                    {% if location.weatherCondition|lower == 'other' %}bg-gray-900 text-white{% endif %}
+                                    ">
+                                        {{ location.temperature }}°C, {{ location.weatherCondition|title }}
+                                    </span>
+                                    
+                                    <form method="post" action="{{ path('simple_location_refresh_weather', {'id': location.id}) }}" class="ml-2">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('refresh' ~ location.id) }}">
+                                        <button type="submit" class="text-blue-500 hover:text-blue-700" title="Refresh weather data">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock w-5"></i>
+                                <span class="ml-2">Updated: {{ location.updatedAt ? location.updatedAt|date('M d, Y \\a\\t g:i A') : 'N/A' }}</span>
+                            </div>
+                            
+                            <div class="pt-3 flex justify-end space-x-2 border-t mt-2">
+                                <a href="{{ path('simple_location_show', {'id': location.id}) }}" class="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition flex items-center">
+                                    <i class="fas fa-eye mr-1"></i> View
+                                </a>
+                                <a href="{{ path('simple_location_new') }}?edit={{ location.id }}" class="px-3 py-1 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition flex items-center">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </a>
+                                <form method="post" action="{{ path('simple_location_delete', {'id': location.id}) }}" onsubmit="return confirm('Are you sure you want to delete this location?\nThis action cannot be undone.');" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ location.id) }}">
+                                    <button type="submit" class="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition flex items-center">
+                                        <i class="fas fa-trash mr-1"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-16">
+                <i class="fas fa-map-marked-alt text-gray-300 text-5xl mb-4"></i>
+                <p class="text-gray-500 mb-6">There are no locations yet.</p>
+                <a href="{{ path('simple_location_new') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg inline-flex items-center">
+                    <i class="fas fa-plus-circle mr-2"></i> Create your first location
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="mt-6">
+        <a href="{{ path('app_event_index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Events
+        </a>
+    </div>
+</div>
+
+<!-- Modal for Location Details -->
+<div id="locationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
+        <div class="p-6 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 id="modalTitle" class="text-2xl font-bold text-gray-800"></h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="space-y-4"></div>
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <button onclick="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewLocationDetails(locationId) {
+        // Find the location data
+        const locations = {{ locations|json_encode|raw }};
+        const location = locations.find(loc => loc.id === locationId);
+        
+        if (!location) return;
+        
+        // Update modal content
+        document.getElementById('modalTitle').textContent = location.name;
+        
+        let content = `
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <div class="mb-3">
+                    <span class="font-semibold text-gray-600">Region:</span>
+                    <span>${location.region}</span>
+                </div>
+                <div class="mb-3">
+                    <span class="font-semibold text-gray-600">Coordinates:</span>
+                    <span>${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}</span>
+                </div>
+                <div class="mb-3">
+                    <span class="font-semibold text-gray-600">Weather:</span>
+                    <span>${location.temperature}°C, ${location.weatherCondition}</span>
+                </div>
+                <div>
+                    <span class="font-semibold text-gray-600">Last Updated:</span>
+                    <span>${new Date(location.updatedAt).toLocaleString()}</span>
+                </div>
+            </div>
+            
+            <div id="locationMap" class="h-64 bg-gray-200 rounded-lg"></div>
+        `;
+        
+        document.getElementById('modalContent').innerHTML = content;
+        
+        // Show modal
+        document.getElementById('locationModal').classList.remove('hidden');
+        
+        // Initialize map
+        setTimeout(() => {
+            const map = L.map('locationMap').setView([location.latitude, location.longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            L.marker([location.latitude, location.longitude]).addTo(map);
+        }, 100);
+    }
+    
+    function closeModal() {
+        document.getElementById('locationModal').classList.add('hidden');
+    }
+</script>
+{% endblock %} 

@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Event Details{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h1 class="h3 mb-0">{{ event.name }}</h1>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ path('app_event_edit', {'id': event.id}) }}" class="btn btn-light">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </a>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash me-1"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Date:</strong></p>
+                                <p class="text-muted">
+                                    <i class="far fa-calendar-alt me-2"></i>
+                                    {{ event.eventDate ? event.eventDate|date('F d, Y - H:i') : 'N/A' }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Location:</strong></p>
+                                <p class="text-muted">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    {{ event.locationWeather ? event.locationWeather.name : 'N/A' }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Description</h5>
+                        <div class="p-3 bg-light rounded mb-4">
+                            {{ event.description|nl2br }}
+                        </div>
+                        
+                        {% if event.locationWeather %}
+                            <h5 class="mb-3">Weather at Location</h5>
+                            <div class="p-3 bg-light rounded mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if event.locationWeather.condition == 'sunny' %}
+                                            <i class="fas fa-sun fa-2x text-warning"></i>
+                                        {% elseif event.locationWeather.condition == 'cloudy' %}
+                                            <i class="fas fa-cloud fa-2x text-secondary"></i>
+                                        {% elseif event.locationWeather.condition == 'rainy' %}
+                                            <i class="fas fa-cloud-rain fa-2x text-primary"></i>
+                                        {% elseif event.locationWeather.condition == 'snowy' %}
+                                            <i class="fas fa-snowflake fa-2x text-info"></i>
+                                        {% else %}
+                                            <i class="fas fa-cloud-sun fa-2x text-secondary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p class="mb-0">{{ event.locationWeather.temperature }}°C, {{ event.locationWeather.condition|title }}</p>
+                                        <small class="text-muted">{{ event.locationWeather.region }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <a href="{{ path('app_event_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to list
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete the event "{{ event.name }}"?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form method="post" action="{{ path('app_event_delete', {'id': event.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                    <button class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

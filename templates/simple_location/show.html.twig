@@ -1,0 +1,212 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ location.name }} - Location Details{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #locationMap {
+            height: 400px;
+            width: 100%;
+            border-radius: 0.5rem;
+        }
+        .weather-icon {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+        .map-error {
+            display: none;
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            border-radius: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <h1 class="text-3xl font-bold text-purple-600 flex items-center mb-4 md:mb-0">
+            <i class="fas fa-map-marked-alt mr-3"></i>{{ location.name }}
+        </h1>
+        <div class="flex space-x-3">
+            <a href="{{ path('simple_location_new') }}?edit={{ location.id }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+                <i class="fas fa-edit mr-2"></i>Edit Location
+            </a>
+            <form method="post" action="{{ path('simple_location_refresh_weather', {'id': location.id}) }}" class="inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('refresh' ~ location.id) }}">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Update Weather
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+            <div class="space-y-6">
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Location Information</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="text-purple-500 w-8">
+                                <i class="fas fa-globe-americas"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-700">Region</h3>
+                                <p>{{ location.region }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="text-purple-500 w-8">
+                                <i class="fas fa-map-pin"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-700">Coordinates</h3>
+                                <p>{{ location.latitude|number_format(6) }}, {{ location.longitude|number_format(6) }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="text-purple-500 w-8">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-700">Last Updated</h3>
+                                <p>{{ location.updatedAt ? location.updatedAt|date('F d, Y \\a\\t g:i A') : 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Current Weather</h2>
+                    
+                    <div class="flex items-center mb-6">
+                        <div class="weather-icon text-center">
+                            <i class="fas 
+                                {% if location.weatherCondition|lower == 'sunny' %}fa-sun text-yellow-500
+                                {% elseif location.weatherCondition|lower == 'cloudy' %}fa-cloud text-gray-500
+                                {% elseif location.weatherCondition|lower == 'rainy' %}fa-cloud-rain text-blue-500
+                                {% elseif location.weatherCondition|lower == 'snowy' %}fa-snowflake text-blue-300
+                                {% elseif location.weatherCondition|lower == 'stormy' %}fa-bolt text-yellow-600
+                                {% elseif location.weatherCondition|lower == 'foggy' %}fa-smog text-gray-400
+                                {% else %}fa-cloud text-gray-500{% endif %}">
+                            </i>
+                        </div>
+                        <div>
+                            <div class="text-4xl font-bold">{{ location.temperature }}°C</div>
+                            <div class="text-gray-600">{{ location.weatherCondition }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm text-gray-600">
+                        <p>Weather data is powered by OpenWeatherMap. Last updated {{ location.updatedAt ? location.updatedAt|date('F d, Y \\a\\t g:i A') : 'N/A' }}.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div id="locationMap"></div>
+                <div id="mapError" class="map-error">
+                    <i class="fas fa-map-marked-alt text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-600">Unable to load map. Please check your internet connection.</p>
+                </div>
+                <div class="mt-4 text-sm text-gray-500 text-center">
+                    Drag the map to explore the area around {{ location.name }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if events|length > 0 %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Events at this location</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for event in events %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-500">{{ event.eventDate|date('F d, Y \\a\\t g:i A') }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <a href="{{ path('app_event_show', {'id': event.id}) }}" class="text-blue-600 hover:text-blue-900 mr-3">View</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="mt-6">
+        <a href="{{ path('simple_location_index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg inline-flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Locations
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Hide error message by default
+                document.getElementById('mapError').style.display = 'none';
+                
+                // Check if L (Leaflet) is available
+                if (typeof L === 'undefined') {
+                    throw new Error('Leaflet is not loaded');
+                }
+                
+                // Initialize map
+                const map = L.map('locationMap').setView([{{ location.latitude }}, {{ location.longitude }}], 13);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                // Add marker for the location
+                const marker = L.marker([{{ location.latitude }}, {{ location.longitude }}])
+                    .addTo(map)
+                    .bindPopup("<strong>{{ location.name }}</strong><br>{{ location.region }}<br>{{ location.temperature }}°C, {{ location.weatherCondition }}")
+                    .openPopup();
+                    
+                // Force map to refresh its container size
+                setTimeout(function() {
+                    map.invalidateSize();
+                }, 100);
+            } catch (error) {
+                console.error('Map initialization error:', error);
+                document.getElementById('locationMap').style.display = 'none';
+                document.getElementById('mapError').style.display = 'flex';
+            }
+        });
+    </script>
+{% endblock %} 

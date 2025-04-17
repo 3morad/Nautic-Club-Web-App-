@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Welcome to Nautic Club{% endblock %}
+
+{% block body %}
+<div class="relative bg-gray-900 text-white">
+    <div class="absolute inset-0 overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1514222134-b57cbb8ce073?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" alt="Nautical Background" class="w-full h-full object-cover opacity-40">
+    </div>
+    
+    <div class="relative container mx-auto px-4 py-24 md:py-32">
+        <div class="max-w-2xl">
+            <h1 class="text-4xl md:text-5xl font-bold mb-6">Experience the Best Nautical Events</h1>
+            <p class="text-xl md:text-2xl mb-8">Find events with real-time weather updates and location information to plan your perfect day on the water.</p>
+            <div class="flex flex-wrap gap-4">
+                <a href="{{ path('app_event_index') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md text-lg font-medium">
+                    Browse Events
+                </a>
+                <a href="{{ path('app_event_nearby') }}" class="bg-white hover:bg-gray-100 text-purple-800 px-6 py-3 rounded-md text-lg font-medium">
+                    Find Nearby Events
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto px-4 py-16">
+    <h2 class="text-3xl font-bold text-gray-800 mb-10 text-center">Upcoming Events</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% if upcoming_events|length > 0 %}
+            {% for event in upcoming_events %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-3">{{ event.name }}</h3>
+                        
+                        <div class="flex items-center mb-3 text-gray-600">
+                            <i class="far fa-calendar-alt mr-2 text-purple-600"></i>
+                            <span>{{ event.eventDate|date('F d, Y - H:i') }}</span>
+                        </div>
+                        
+                        <div class="flex items-center mb-3 text-gray-600">
+                            <i class="fas fa-map-marker-alt mr-2 text-purple-600"></i>
+                            <span>{{ event.locationWeather.name }}, {{ event.locationWeather.region }}</span>
+                        </div>
+                        
+                        <div class="flex items-center mb-4 text-gray-600">
+                            <i class="fas fa-temperature-high mr-2 text-purple-600"></i>
+                            <span>{{ event.locationWeather.temperature }}°C, {{ event.locationWeather.weatherCondition }}</span>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-5">{{ event.description|length > 120 ? event.description|slice(0, 120) ~ '...' : event.description }}</p>
+                        
+                        <a href="{{ path('app_event_show', {'id': event.id}) }}" class="inline-block bg-purple-100 hover:bg-purple-200 text-purple-800 px-4 py-2 rounded">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-span-3 text-center py-8 text-gray-500">
+                <p>No upcoming events scheduled. Check back soon!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="text-center mt-10">
+        <a href="{{ path('app_event_index') }}" class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md">
+            View All Events
+        </a>
+    </div>
+</div>
+
+<div class="bg-gray-50 py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-gray-800 mb-10 text-center">Why Choose Nautic Club?</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-purple-600 text-3xl mb-4">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Location Intelligence</h3>
+                <p class="text-gray-600">Find nautical events near you with our advanced geolocation features and distance calculations.</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-purple-600 text-3xl mb-4">
+                    <i class="fas fa-cloud-sun"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Real-time Weather</h3>
+                <p class="text-gray-600">Always know the weather conditions at every event location to plan your activities accordingly.</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-purple-600 text-3xl mb-4">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Easy Booking</h3>
+                <p class="text-gray-600">Book tickets for events with a simple, user-friendly process and manage all your reservations in one place.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

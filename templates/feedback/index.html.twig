@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Feedback{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Provide Feedback</h1>
+    
+    <div class="bg-white shadow-md rounded-lg overflow-hidden p-6 mb-8">
+        <form>
+            <div class="mb-6">
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+                <input type="text" id="name" name="name" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="John Doe">
+            </div>
+            
+            <div class="mb-6">
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input type="email" id="email" name="email" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="john@example.com">
+            </div>
+            
+            <div class="mb-6">
+                <label for="event" class="block text-sm font-medium text-gray-700 mb-1">Event (if applicable)</label>
+                <select id="event" name="event" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                    <option value="">Select an event</option>
+                    <option value="1">Summer Sailing Competition - June 15, 2023</option>
+                    <option value="2">Yacht Parade - July 4, 2023</option>
+                    <option value="3">Coastal Wildlife Tour - August 12, 2023</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <label for="feedback_type" class="block text-sm font-medium text-gray-700 mb-1">Feedback Type</label>
+                <select id="feedback_type" name="feedback_type" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500">
+                    <option value="">Select type</option>
+                    <option value="general">General Feedback</option>
+                    <option value="event">Event Experience</option>
+                    <option value="suggestion">Suggestion</option>
+                    <option value="issue">Report an Issue</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                <div class="flex items-center space-x-2">
+                    <div class="flex text-2xl text-yellow-400">
+                        <i class="fas fa-star cursor-pointer"></i>
+                        <i class="fas fa-star cursor-pointer"></i>
+                        <i class="fas fa-star cursor-pointer"></i>
+                        <i class="far fa-star cursor-pointer"></i>
+                        <i class="far fa-star cursor-pointer"></i>
+                    </div>
+                    <span class="text-gray-600 ml-2">3/5</span>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label for="message" class="block text-sm font-medium text-gray-700 mb-1">Your Feedback</label>
+                <textarea id="message" name="message" rows="5" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-purple-500 focus:border-purple-500" placeholder="Please share your thoughts, suggestions or report any issues you encountered..."></textarea>
+            </div>
+            
+            <div class="mb-6">
+                <label class="flex items-center">
+                    <input type="checkbox" class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50">
+                    <span class="ml-2 text-sm text-gray-600">Contact me about my feedback</span>
+                </label>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md">
+                    Submit Feedback
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Why Your Feedback Matters</h2>
+        
+        <p class="text-gray-600 mb-4">
+            At Nautic Club, we're committed to providing exceptional experiences. Your feedback helps us improve our events, locations, and services.
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex items-start">
+                <div class="text-purple-600 mr-3 mt-1">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-800">Enhancing Future Events</h3>
+                    <p class="text-sm text-gray-600">Your suggestions directly influence our future event planning.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="text-purple-600 mr-3 mt-1">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-800">Improving Locations</h3>
+                    <p class="text-sm text-gray-600">Help us choose and develop the best venues for nautical events.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="text-purple-600 mr-3 mt-1">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-800">Service Excellence</h3>
+                    <p class="text-sm text-gray-600">We constantly strive to improve our customer service based on your feedback.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start">
+                <div class="text-purple-600 mr-3 mt-1">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <h3 class="font-medium text-gray-800">Community Building</h3>
+                    <p class="text-sm text-gray-600">Your input helps us build a stronger nautical community.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Event{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h3 mb-0">Create new Event</h1>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    {{ form_label(form.name, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.name) }}
+                                    {{ form_errors(form.name) }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    {{ form_label(form.eventDate, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.eventDate) }}
+                                    {{ form_errors(form.eventDate) }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.description) }}
+                                    {{ form_errors(form.description) }}
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    {{ form_label(form.locationWeather, 'Location', {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.locationWeather) }}
+                                    <div class="form-text text-muted">
+                                        <small>You need to <a href="{{ path('simple_location_new') }}" class="text-primary">create a location</a> before you can select one.</small>
+                                    </div>
+                                    {{ form_errors(form.locationWeather) }}
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ path('app_event_index') }}" class="btn btn-secondary">Back to list</a>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save me-1"></i> Save
+                                </button>
+                            </div>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

@@ -1,0 +1,335 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 flex items-center">
+            <i class="fas fa-tachometer-alt text-purple-600 mr-3"></i>Dashboard
+        </h1>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-500 bg-opacity-10">
+                        <i class="fas fa-ticket-alt text-blue-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Total Tickets</p>
+                        <p class="text-2xl font-semibold">{{ total_tickets|default(235) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-500 bg-opacity-10">
+                        <i class="fas fa-money-bill-wave text-green-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Total Revenue</p>
+                        <p class="text-2xl font-semibold">${{ total_revenue|default(12450.75)|number_format(2) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-500 bg-opacity-10">
+                        <i class="fas fa-users text-purple-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Active Users</p>
+                        <p class="text-2xl font-semibold">{{ active_users|default(87) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 transition-all duration-300 hover:shadow-lg">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-500 bg-opacity-10">
+                        <i class="fas fa-star text-yellow-500 text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-500 text-sm">Average Rating</p>
+                        <p class="text-2xl font-semibold">{{ average_rating|default(4.6)|number_format(1) }}/5</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather and Events Overview -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Weather & Events Overview</h2>
+                <a href="{{ path('simple_location_index') }}" class="text-blue-500 hover:text-blue-700 text-sm flex items-center">
+                    <span>View all locations</span>
+                    <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2">
+                    <div id="weatherMap" class="h-80 rounded-lg border border-gray-200"></div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Weather Summary</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Total Locations:</span>
+                                <span class="font-medium">{{ locations_count|default(0) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Avg Temperature:</span>
+                                <span class="font-medium">{{ avg_temperature|default('N/A') }}°C</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Most Common:</span>
+                                <span class="font-medium">{{ most_common_condition|default('N/A') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                        <h3 class="text-lg font-medium text-purple-800 mb-2">Upcoming Events</h3>
+                        {% if upcoming_events is defined and upcoming_events|length > 0 %}
+                            <ul class="space-y-2">
+                                {% for event in upcoming_events %}
+                                    <li class="flex items-start">
+                                        <div class="min-w-[40px] mr-2 text-center">
+                                            <div class="bg-white rounded border border-gray-200 p-1">
+                                                <div class="text-xs text-gray-500">{{ event.eventDate|date('M') }}</div>
+                                                <div class="font-bold text-purple-700">{{ event.eventDate|date('d') }}</div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="font-medium text-gray-800">{{ event.name }}</div>
+                                            <div class="text-xs text-gray-500">
+                                                <i class="fas fa-map-marker-alt"></i> {{ event.locationWeather ? event.locationWeather.name : 'No location' }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-gray-500 text-sm">No upcoming events</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Revenue Overview</h2>
+                <canvas id="revenueChart"></canvas>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Ticket Sales</h2>
+                <canvas id="ticketChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">Recent Transactions</h2>
+                <a href="{{ path('admin_transactions_index') }}" class="text-blue-500 hover:text-blue-700 text-sm flex items-center">
+                    <span>View all transactions</span>
+                    <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% if recent_transactions is defined and recent_transactions|length > 0 %}
+                            {% for transaction in recent_transactions %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ transaction.id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.user.email }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ transaction.amount|number_format(2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                            {% if transaction.status == 'completed' %}bg-green-100 text-green-800
+                                            {% elseif transaction.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ transaction.status|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ transaction.createdAt|date('Y-m-d H:i') }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent transactions</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% block javascripts %}
+        {{ parent() }}
+        <script>
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ revenue_labels|default(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'])|json_encode|raw }},
+                    datasets: [{
+                        label: 'Revenue',
+                        data: {{ revenue_data|default([1500, 2500, 2100, 3200, 4800, 3800])|json_encode|raw }},
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Ticket Sales Chart
+            const ticketCtx = document.getElementById('ticketChart').getContext('2d');
+            new Chart(ticketCtx, {
+                type: 'bar',
+                data: {
+                    labels: {{ ticket_labels|default(['Sailing', 'Yacht Tours', 'Boat Rental', 'Wind Surfing', 'Special Events'])|json_encode|raw }},
+                    datasets: [{
+                        label: 'Tickets Sold',
+                        data: {{ ticket_data|default([45, 60, 75, 40, 25])|json_encode|raw }},
+                        backgroundColor: 'rgba(147, 51, 234, 0.2)',
+                        borderColor: 'rgb(147, 51, 234)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Weather Map
+            document.addEventListener('DOMContentLoaded', function() {
+                const map = L.map('weatherMap').setView([48.8566, 2.3522], 5);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+                
+                // Add markers for locations if available
+                {% if locations is defined and locations|length > 0 %}
+                    {% for location in locations %}
+                        // Create weather icon based on condition
+                        let markerIcon = L.divIcon({
+                            html: `<div class="weather-marker" title="{{ location.name }}: {{ location.temperature }}°C, {{ location.weatherCondition }}">
+                                    <i class="fas
+                                    {% if location.weatherCondition|lower == 'sunny' %} fa-sun text-yellow-500
+                                    {% elseif location.weatherCondition|lower == 'cloudy' %} fa-cloud text-gray-500
+                                    {% elseif location.weatherCondition|lower == 'rainy' %} fa-cloud-rain text-blue-500
+                                    {% elseif location.weatherCondition|lower == 'snowy' %} fa-snowflake text-blue-300
+                                    {% elseif location.weatherCondition|lower == 'stormy' %} fa-bolt text-yellow-600
+                                    {% elseif location.weatherCondition|lower == 'foggy' %} fa-smog text-gray-400
+                                    {% else %} fa-cloud text-gray-500{% endif %}"></i>
+                                   </div>`,
+                            className: 'custom-marker',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                        
+                        L.marker([{{ location.latitude }}, {{ location.longitude }}], {icon: markerIcon})
+                         .addTo(map)
+                         .bindPopup(`
+                            <div class="text-center">
+                                <div class="font-bold">{{ location.name }}</div>
+                                <div class="text-gray-600">{{ location.region }}</div>
+                                <div class="my-2 font-medium">{{ location.temperature }}°C, {{ location.weatherCondition }}</div>
+                                <div class="text-xs text-gray-500">Updated: {{ location.updatedAt|date('M d, Y') }}</div>
+                            </div>
+                         `);
+                    {% endfor %}
+                {% else %}
+                    // Add default marker if no locations
+                    L.marker([48.8566, 2.3522])
+                     .addTo(map)
+                     .bindPopup('Add your first weather location!');
+                {% endif %}
+            });
+        </script>
+        
+        <style>
+            .weather-marker {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                background-color: white;
+                border-radius: 50%;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+            
+            .weather-marker i {
+                font-size: 16px;
+            }
+            
+            .custom-marker {
+                background: none;
+                border: none;
+            }
+        </style>
+    {% endblock %}
+{% endblock %} 
