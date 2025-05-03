@@ -3,3 +3,8 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+payment:
+    path: /payment
+    controller: App\Controller\PaymentController::index
+    methods: [GET, POST]

@@ -1,0 +1,156 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ event }} Feedback - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .event-header {
+            background-color: #f8f9fa;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .event-title {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .event-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4285F4;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #666;
+        }
+        
+        .feedback-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .feedback-rating {
+            color: #FFC107;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feedback-comment {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .feedback-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        
+        .feedback-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .leave-feedback-btn {
+            display: inline-block;
+            background-color: #4285F4;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .leave-feedback-btn:hover {
+            background-color: #3367D6;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: #6c757d;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="event-header">
+        <div class="container">
+            <h1 class="event-title">{{ event }}</h1>
+            
+            <div class="event-stats">
+                <div class="stat-item">
+                    <div class="stat-value">{{ averageRating }}</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ count }}</div>
+                    <div class="stat-label">Feedback Count</div>
+                </div>
+            </div>
+            
+            <a href="{{ path('app_leave_feedback_for_event', {'eventName': event|url_encode}) }}" class="leave-feedback-btn">
+                Leave Feedback
+            </a>
+        </div>
+    </div>
+
+    <div class="container feedback-list">
+        {% if feedbacks|length > 0 %}
+            {% for feedback in feedbacks %}
+                <div class="feedback-card">
+                    <div class="feedback-rating">
+                        {% for i in 1..5 %}
+                            {% if i <= feedback.rating %}
+                                ★
+                            {% else %}
+                                ☆
+                            {% endif %}
+                        {% endfor %}
+                        ({{ feedback.rating }}/5)
+                    </div>
+                    
+                    <div class="feedback-comment">
+                        {{ feedback.comment }}
+                    </div>
+                    
+                    <div class="feedback-meta">
+                        <div class="feedback-author">{{ feedback.username }}</div>
+                        <div class="feedback-date">{{ feedback.createdAt|date('M d, Y') }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>No feedback has been submitted for this event yet.</p>
+                <p>Be the first to share your experience!</p>
+                <a href="{{ path('app_leave_feedback_for_event', {'eventName': event|url_encode}) }}" class="leave-feedback-btn">
+                    Leave Feedback
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %} 

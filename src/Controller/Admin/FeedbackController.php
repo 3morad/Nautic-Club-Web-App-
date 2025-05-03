@@ -34,7 +34,6 @@ class FeedbackController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $feedback->setUser($this->getUser());
             $feedback->setCreatedAt(new \DateTimeImmutable());
             
             $entityManager->persist($feedback);

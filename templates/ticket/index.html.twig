@@ -1,23 +1,135 @@
+{# templates/ticket/index.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}My Tickets - Nautic Club{% endblock %}
 
 {% block body %}
 <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">My Tickets</h1>
 
+    {# ─────────────── Header: page title + tab buttons ─────────────── #}
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold">My Tickets</h1>
+
+        <div class="flex space-x-4">
+            <a href="{{ path('ticket_index', {'type':'support'}) }}"
+               class="px-4 py-2 rounded
+                      {{ currentType == 'support'
+                         ? 'bg-purple-600 text-white'
+                         : 'bg-gray-200 text-gray-700' }}">
+                Support Tickets
+            </a>
+
+            <a href="{{ path('ticket_index', {'type':'other'}) }}"
+               class="px-4 py-2 rounded
+                      {{ currentType == 'other'
+                         ? 'bg-purple-600 text-white'
+                         : 'bg-gray-200 text-gray-700' }}">
+                Event History
+            </a>
+        </div>
+    </div>
+
+    {# ─────────────── New-ticket button (only on Support tab) ─────────────── #}
+    {% if currentType == 'support' %}
+        <div class="mb-6">
+            <button id="new-ticket-btn" type="button" onclick="showSupportTicketModal(); return false;"
+                    class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                + New Support Ticket
+            </button>
+        </div>
+    {% endif %}
+
+    {# ─────────────── Flash messages ─────────────── #}
+    {% for message in app.flashes('success') %}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-md mb-6 animate-flash-message" role="alert">
+            <div class="flex items-center">
+                <svg class="h-6 w-6 text-green-600 mr-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="block text-lg font-medium">{{ message }}</span>
+            </div>
+        </div>
+    {% endfor %}
+
+    {# ─────────────── New-ticket modal ─────────────── #}
+    <div id="ticket-form-modal"
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Issue New Ticket</h2>
+                <button id="close-modal" class="text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            {{ form_start(form, {'attr': {'class': 'space-y-6', 'id': 'ticket-form'}}) }}
+
+                {# Hidden fields are automatically rendered #}
+                
+                {# Title field #}
+                <div>
+                    {{ form_label(form.title, 'Title',
+                        {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.title,
+                        {'attr': {'class':
+                            'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                    {{ form_errors(form.title,
+                        {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                {# Description field #}
+                <div>
+                    {{ form_label(form.description, 'Description',
+                        {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.description,
+                        {'attr': {
+                            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500',
+                            'rows': '5'}}) }}
+                    {{ form_errors(form.description,
+                        {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                {# Category field #}
+                <div>
+                    {{ form_label(form.category, 'Category',
+                        {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+                    {{ form_widget(form.category,
+                        {'attr': {'class':
+                            'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500'}}) }}
+                    {{ form_errors(form.category,
+                        {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-ticket"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        Cancel
+                    </button>
+                    <button type="submit" id="create-ticket-btn"
+                            class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                        Create Ticket
+                    </button>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    {# ─────────────── Ticket cards grid ─────────────── #}
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for ticket in tickets %}
             <div class="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div class="p-6">
                     {% if ticket.isSupport %}
-                        {# Support Ticket Display #}
+                        {# ── Support ticket card ── #}
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <h2 class="text-xl font-bold text-gray-900">{{ ticket.title }}</h2>
                                 <p class="text-gray-600">{{ ticket.createdAt|date('F d, Y') }}</p>
                             </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                 support
                             </span>
                         </div>
@@ -29,7 +141,7 @@
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="text-gray-600">Status</span>
-                                <span class="font-medium 
+                                <span class="font-medium
                                     {% if ticket.status == 'open' %}text-green-600
                                     {% elseif ticket.status == 'in_progress' %}text-yellow-600
                                     {% else %}text-gray-600{% endif %}">
@@ -43,19 +155,20 @@
                         </div>
 
                         <div class="mt-6">
-                            <a href="{{ path('ticket_show', {'id': ticket.id}) }}" 
+                            <a href="{{ path('ticket_show', {'id': ticket.id}) }}"
                                class="w-full block text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
                                 View Support Ticket
                             </a>
                         </div>
+
                     {% else %}
-                        {# Event Ticket Display #}
+                        {# ── Event ticket card ── #}
                         <div class="flex justify-between items-start mb-4">
                             <div>
                                 <h2 class="text-xl font-bold text-gray-900">{{ ticket.eventName }}</h2>
                                 <p class="text-gray-600">{{ ticket.eventDate|date('F d, Y') }}</p>
                             </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                                 {% if ticket.ticketType == 'VIP Experience' %}
                                     bg-purple-100 text-purple-800
                                 {% elseif ticket.ticketType == 'Exclusive Ticket' %}
@@ -80,7 +193,7 @@
                         </div>
 
                         <div class="mt-6 flex space-x-3">
-                            <a href="{{ path('ticket_show', {'id': ticket.id}) }}" 
+                            <a href="{{ path('ticket_show', {'id': ticket.id}) }}"
                                class="flex-1 text-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
                                 View Details
                             </a>
@@ -93,17 +206,146 @@
                 </div>
             </div>
         {% else %}
-            <div class="col-span-full text-center py-12">
-                <div class="text-gray-500 mb-4">
-                    <i class="fas fa-ticket-alt text-4xl mb-4"></i>
-                    <h3 class="text-lg font-medium">No Tickets Found</h3>
-                </div>
-                <p class="text-gray-600 mb-4">You haven't purchased any tickets yet.</p>
-                <a href="{{ path('payment_page') }}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
-                    Book Tickets
-                </a>
+            <div class="col-span-3 text-center py-8">
+                <p class="text-gray-500">
+                    No tickets found{% if currentType == 'support' %}. Create your first ticket!{% endif %}
+                </p>
             </div>
         {% endfor %}
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Alternative approach - direct function for showing the modal
+        function showSupportTicketModal() {
+            console.log('Direct showSupportTicketModal called');
+            const modal = document.getElementById('ticket-form-modal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'block';
+            } else {
+                console.error('Modal element not found!');
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if there are flash messages and scroll to top if there are
+            const flashMessages = document.querySelectorAll('.animate-flash-message');
+            if (flashMessages.length > 0) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            const modal = document.getElementById('ticket-form-modal');
+            const ticketForm = document.getElementById('ticket-form');
+            
+            // Get all buttons that could open the modal
+            const newTicketBtn = document.getElementById('new-ticket-btn');
+            
+            const closeModalBtn = document.getElementById('close-modal');
+            const cancelBtn = document.getElementById('cancel-ticket');
+            
+            console.log('Modal element:', modal);
+            console.log('New ticket button:', newTicketBtn);
+            console.log('Ticket form:', ticketForm);
+
+            // Debug form submission
+            if (ticketForm) {
+                ticketForm.addEventListener('submit', function(e) {
+                    console.log('Form is being submitted');
+                    // Form will submit normally
+                });
+            }
+
+            /* ───── modal helpers ───── */
+            const hideModal = () => {
+                console.log('Hiding modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                }
+            };
+            
+            const showModal = () => {
+                console.log('Showing modal via event handler');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.style.display = 'block';
+                } else {
+                    console.error('Modal not found in showModal');
+                }
+            };
+
+            // Try to attach click event via JavaScript
+            if (newTicketBtn) {
+                console.log('Adding click event to new ticket button');
+                // Add click event in multiple ways to ensure it works
+                newTicketBtn.addEventListener('click', showModal);
+                newTicketBtn.onclick = function() {
+                    console.log('Direct onclick handler triggered');
+                    showModal();
+                    return false;
+                };
+            } else {
+                console.error('New ticket button not found!');
+                
+                // Fallback: Try to find the button by text content
+                document.querySelectorAll('button').forEach(btn => {
+                    if (btn.textContent.trim().includes('New Support Ticket')) {
+                        console.log('Found button by text, adding event listener');
+                        btn.addEventListener('click', showModal);
+                    }
+                });
+            }
+            
+            if (closeModalBtn) closeModalBtn.addEventListener('click', hideModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', hideModal);
+
+            if (modal) {
+                modal.addEventListener('click', e => {
+                    if (e.target === modal) hideModal();
+                });
+            }
+            
+            // Add a global click handler as a fallback
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.id === 'new-ticket-btn') {
+                    console.log('Global click event captured');
+                    showModal();
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Modal visibility override */
+        #ticket-form-modal:not(.hidden) {
+            display: block !important;
+        }
+        
+        /* Button styling override to match the screenshot */
+        #new-ticket-btn {
+            background-color: #9333ea;
+            color: white;
+            font-weight: bold;
+            border-radius: 0.25rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        /* Flash message animation */
+        @keyframes flash-highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        .animate-flash-message {
+            animation: flash-highlight 0.5s ease-in-out 3;
+        }
+    </style>
+{% endblock %}

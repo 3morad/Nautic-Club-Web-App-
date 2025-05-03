@@ -1,0 +1,393 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Payment Details - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .payment-container {
+            max-width: 550px;
+            margin: 3rem auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .payment-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid #f1f1f1;
+            position: relative;
+        }
+        
+        .payment-header h1 {
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .back-button {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .back-button:hover {
+            color: #4285F4;
+        }
+        
+        .back-button i {
+            margin-right: 0.25rem;
+        }
+        
+        .payment-progress {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .progress-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            margin: 0 3px;
+        }
+        
+        .progress-dot.active {
+            background-color: #999;
+        }
+        
+        .payment-form {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .form-col {
+            flex: 1;
+        }
+        
+        .payment-footer {
+            background-color: #4285F4;
+            padding: 1rem;
+            text-align: center;
+            display: flex;
+        }
+        
+        .back-step-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0 1rem;
+            opacity: 0.85;
+            transition: opacity 0.2s;
+        }
+        
+        .back-step-btn:hover {
+            opacity: 1;
+        }
+        
+        .next-step-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        
+        .selected-method {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .selected-method-logo {
+            width: 40px;
+            height: 24px;
+            margin-right: 1rem;
+        }
+        
+        .selected-method-logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .selected-method-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        /* Stripe Elements styling */
+        .stripe-element {
+            padding: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .stripe-element.focused {
+            border-color: #4285F4;
+        }
+        
+        .stripe-element.invalid {
+            border-color: #FF5252;
+        }
+        
+        #card-errors {
+            color: #FF5252;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Test card notification */
+        .test-card-info {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .test-card-info h4 {
+            font-size: 1rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: #343a40;
+        }
+        
+        .test-card-info ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+        
+        .test-card-info li {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if paymentData.payment_method == 'visa' or paymentData.payment_method == 'mastercard' %}
+        <script src="https://js.stripe.com/v3/"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize Stripe
+                const stripe = Stripe('{{ stripe_publishable_key }}');
+                const elements = stripe.elements();
+                
+                // Create card element
+                const cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#32325d',
+                            '::placeholder': {
+                                color: '#aab7c4',
+                            },
+                        },
+                        invalid: {
+                            color: '#FF5252',
+                            iconColor: '#FF5252',
+                        },
+                    },
+                });
+                
+                // Mount card element
+                cardElement.mount('#card-element');
+                
+                // Handle real-time validation errors
+                cardElement.addEventListener('change', function(event) {
+                    const displayError = document.getElementById('card-errors');
+                    if (event.error) {
+                        displayError.textContent = event.error.message;
+                    } else {
+                        displayError.textContent = '';
+                    }
+                });
+                
+                // Handle form submission
+                const form = document.getElementById('payment-details-form');
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    
+                    // Extract data from form for non-card fields
+                    const cardName = document.getElementById('name').value;
+                    const ticketTypeSelect = document.getElementById('ticket_type');
+                    
+                    // Check if ticket type is selected
+                    if (!ticketTypeSelect.value) {
+                        // Show error
+                        const errorEl = document.getElementById('card-errors');
+                        errorEl.textContent = 'Please select a ticket type';
+                        return;
+                    }
+                    
+                    // For demo purposes, we're simulating getting card data directly
+                    // In a real app, you would use Stripe tokens or Payment Intents
+                    
+                    // Set values for the hidden fields based on which test card to use
+                    // Default is the success card - for demo we'll use this
+                    document.getElementById('card_number').value = '4242424242424242';
+                    document.getElementById('expiry').value = '12/28';
+                    document.getElementById('cvv').value = '123';
+                    
+                    // Submit the form
+                    form.submit();
+                });
+            });
+        </script>
+    {% endif %}
+{% endblock %}
+
+{% block body %}
+<div class="payment-container">
+    <div class="payment-header">
+        <a href="{{ path('payment_back_step') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <h1>Payment Details</h1>
+        <div class="payment-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+        </div>
+    </div>
+    
+    <form id="payment-details-form" method="POST">
+        <div class="payment-form">
+            <div class="selected-method">
+                <div class="selected-method-logo">
+                    <img src="{{ asset('images/' ~ paymentData.payment_method ~ '.png') }}" alt="{{ paymentData.payment_method }}">
+                </div>
+                <div class="selected-method-name">
+                    {% if paymentData.payment_method == 'visa' %}
+                        Visa Card
+                    {% elseif paymentData.payment_method == 'mastercard' %}
+                        Mastercard
+                    {% elseif paymentData.payment_method == 'paypal' %}
+                        PayPal
+                    {% elseif paymentData.payment_method == 'voucher' %}
+                        Voucher
+                    {% endif %}
+                </div>
+            </div>
+            
+            {# Test cards information #}
+            {% if paymentData.payment_method == 'visa' or paymentData.payment_method == 'mastercard' %}
+                <div class="test-card-info">
+                    <h4>Test Cards (Powered by Stripe)</h4>
+                    <ul>
+                        <li><strong>Success:</strong> 4242 4242 4242 4242</li>
+                        <li><strong>Decline:</strong> 4000 0000 0000 0002</li>
+                        <li>Any future date for expiry, any 3 digits for CVC</li>
+                        <li>Any name can be used</li>
+                    </ul>
+                </div>
+            {% endif %}
+            
+            {# For credit cards #}
+            {% if paymentData.payment_method == 'visa' or paymentData.payment_method == 'mastercard' %}
+                <div class="form-group">
+                    <label for="card-element">Card Details</label>
+                    <div id="card-element" class="stripe-element"></div>
+                    <div id="card-errors" role="alert"></div>
+                </div>
+                
+                {# Hidden fields for card data - these will be populated by JavaScript #}
+                <input type="hidden" id="card_number" name="card_number" value="4242424242424242">
+                <input type="hidden" id="expiry" name="expiry" value="12/28">
+                <input type="hidden" id="cvv" name="cvv" value="123">
+                
+                <div class="form-group">
+                    <label for="name">Cardholder Name</label>
+                    <input type="text" id="name" name="name" class="form-control" required placeholder="John Doe">
+                </div>
+            {% endif %}
+            
+            {# For PayPal #}
+            {% if paymentData.payment_method == 'paypal' %}
+                <div class="form-group">
+                    <label for="email">PayPal Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required placeholder="your-email@example.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">PayPal Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required placeholder="Your PayPal password">
+                </div>
+            {% endif %}
+            
+            {# For Voucher #}
+            {% if paymentData.payment_method == 'voucher' %}
+                <div class="form-group">
+                    <label for="voucher_code">Voucher Code</label>
+                    <input type="text" id="voucher_code" name="voucher_code" class="form-control" required placeholder="Enter your voucher code">
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="ticket_type">Select Ticket</label>
+                <select id="ticket_type" name="ticket_type" class="form-control" required>
+                    <option value="">-- Select a ticket --</option>
+                    {% for ticket in ticket_types %}
+                        <option value="{{ ticket.type }}">{{ ticket.name }} - ${{ ticket.price }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="payment-footer">
+            <a href="{{ path('payment_back_step') }}" class="back-step-btn">← Back</a>
+            <button type="submit" class="next-step-btn">Review Order →</button>
+        </div>
+    </form>
+</div>
+{% endblock %} 

@@ -19,24 +19,40 @@ class TicketType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        // Determine if we should force support tickets only
+        $forceSupport = $options['force_support_ticket'] ?? false;
+        
+        // If force support is enabled, only show Support Ticket option
+        if ($forceSupport) {
+            $builder
+                ->add('isSupport', ChoiceType::class, [
+                    'label' => 'Ticket Type',
+                    'choices' => [
+                        'Support Ticket' => true,
+                    ],
+                    'expanded' => true,
+                    'multiple' => false,
+                    'required' => true,
+                    'empty_data' => true,
+                    'data' => true,
+                    'disabled' => true, // Make it non-editable
+                ]);
+        } else {
+            // For admin, show both options
+            $builder
+                ->add('isSupport', ChoiceType::class, [
+                    'label' => 'Ticket Type',
+                    'choices' => [
+                        'Support Ticket' => true,
+                        'Event Ticket' => false,
+                    ],
+                    'expanded' => true,
+                    'multiple' => false,
+                    'required' => true,
+                ]);
+        }
+        
         $builder
-            ->add('isSupport', ChoiceType::class, [
-                'label' => 'Ticket Type',
-                'choices' => [
-                    'Support Ticket' => true,
-                    'Event Ticket' => false,
-                ],
-                'expanded' => true,
-                'multiple' => false,
-                'required' => true,
-                'empty_data' => false,
-                'data' => false,
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please select a ticket type',
-                    ]),
-                ],
-            ])
             ->add('title', TextType::class, [
                 'constraints' => [
                     new NotBlank([
@@ -82,44 +98,11 @@ class TicketType extends AbstractType
 
             // If creating a new ticket or editing an event ticket
             if (!$ticket || !$ticket->isSupport()) {
-                $form->add('ticketType', ChoiceType::class, [
-                    'label' => 'Event Ticket Type',
-                    'choices' => [
-                        'Regular Ticket' => 'Regular Ticket',
-                        'VIP Experience' => 'VIP Experience',
-                        'Exclusive Ticket' => 'Exclusive Ticket',
-                    ],
-                    'constraints' => [
-                        new NotBlank([
-                            'message' => 'Please select an event ticket type',
-                        ]),
-                    ],
-                ])
-                ->add('price', MoneyType::class, [
-                    'currency' => 'USD',
-                    'constraints' => [
-                        new NotBlank([
-                            'message' => 'Please enter a price',
-                        ]),
-                    ],
-                ])
-                ->add('eventName', TextType::class, [
-                    'label' => 'Event Name',
-                    'constraints' => [
-                        new NotBlank([
-                            'message' => 'Please enter the event name',
-                        ]),
-                    ],
-                ])
-                ->add('eventDate', DateTimeType::class, [
-                    'label' => 'Event Date',
-                    'widget' => 'single_text',
-                    'constraints' => [
-                        new NotBlank([
-                            'message' => 'Please enter the event date',
-                        ]),
-                    ],
-                ]);
+                $defaultDate = new \DateTime('+2 weeks');
+                if ($ticket && !$ticket->getEventDate()) {
+                    $ticket->setEventDate($defaultDate);
+                }
+                $this->addEventTicketFields($form, $defaultDate);
             }
         });
 
@@ -129,55 +112,56 @@ class TicketType extends AbstractType
             $form = $event->getForm();
             
             if (isset($data['isSupport']) && $data['isSupport'] === '0') {
-                // Event ticket fields
-                if (!$form->has('ticketType')) {
-                    $form->add('ticketType', ChoiceType::class, [
-                        'label' => 'Event Ticket Type',
-                        'choices' => [
-                            'Regular Ticket' => 'Regular Ticket',
-                            'VIP Experience' => 'VIP Experience',
-                            'Exclusive Ticket' => 'Exclusive Ticket',
-                        ],
-                        'constraints' => [
-                            new NotBlank([
-                                'message' => 'Please select an event ticket type',
-                            ]),
-                        ],
-                    ])
-                    ->add('price', MoneyType::class, [
-                        'currency' => 'USD',
-                        'constraints' => [
-                            new NotBlank([
-                                'message' => 'Please enter a price',
-                            ]),
-                        ],
-                    ])
-                    ->add('eventName', TextType::class, [
-                        'label' => 'Event Name',
-                        'constraints' => [
-                            new NotBlank([
-                                'message' => 'Please enter the event name',
-                            ]),
-                        ],
-                    ])
-                    ->add('eventDate', DateTimeType::class, [
-                        'label' => 'Event Date',
-                        'widget' => 'single_text',
-                        'constraints' => [
-                            new NotBlank([
-                                'message' => 'Please enter the event date',
-                            ]),
-                        ],
-                    ]);
-                }
+                // Convert the submitted date string to DateTime if present
+                $eventDate = isset($data['eventDate']) && $data['eventDate'] 
+                    ? new \DateTime($data['eventDate']) 
+                    : new \DateTime('+2 weeks');
+                    
+                $this->addEventTicketFields($form, $eventDate);
             }
         });
+    }
+
+    private function addEventTicketFields($form, \DateTime $defaultDate): void
+    {
+        $form->add('ticketType', ChoiceType::class, [
+            'label' => 'Event Ticket Type',
+            'choices' => [
+                'Regular Ticket' => 'Regular Ticket',
+                'VIP Experience' => 'VIP Experience',
+                'Exclusive Ticket' => 'Exclusive Ticket',
+            ],
+            'required' => true,
+        ])
+        ->add('price', MoneyType::class, [
+            'currency' => 'USD',
+            'required' => true,
+        ])
+        ->add('eventName', TextType::class, [
+            'label' => 'Event Name',
+            'required' => true,
+        ])
+        ->add('eventDate', DateTimeType::class, [
+            'label' => 'Event Date',
+            'widget' => 'single_text',
+            'required' => true,
+            'data' => $defaultDate,
+            'html5' => true,
+            'input' => 'datetime',
+            'attr' => [
+                'min' => (new \DateTime())->format('Y-m-d\TH:i'),
+            ],
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'data_class' => Ticket::class,
+            'allow_extra_fields' => true,
+            'force_support_ticket' => false, // Default to false, allowing both ticket types
         ]);
+        
+        $resolver->setAllowedTypes('force_support_ticket', 'bool');
     }
 } 

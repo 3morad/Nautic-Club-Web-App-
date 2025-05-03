@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Feedback;
 use App\Entity\Transaction;
+use App\Entity\User;
 use App\Form\FeedbackType;
 use App\Repository\FeedbackRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,16 +13,27 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\FormSpreeService;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/feedback')]
 class FeedbackController extends AbstractController
 {
+    private $formSpreeService;
+    
+    public function __construct(FormSpreeService $formSpreeService)
+    {
+        $this->formSpreeService = $formSpreeService;
+    }
+
     /**
      * Display all feedback entries
      */
     #[Route('/', name: 'app_feedback_index', methods: ['GET'])]
-    public function listFeedback(FeedbackRepository $feedbackRepository): Response
+    public function listFeedback(EntityManagerInterface $entityManager): Response
     {
+        $feedbackRepository = $entityManager->getRepository(Feedback::class);
+        
         $feedbacks = $feedbackRepository->createQueryBuilder('f')
             ->where('f.isAdmin = :isAdmin')
             ->setParameter('isAdmin', false)
@@ -39,10 +51,15 @@ class FeedbackController extends AbstractController
             $feedbacksByEvent[$eventName][] = $feedback;
         }
         
+        // Get the events with statistics
+        $events = $this->getEventsList($entityManager);
+        
         return $this->render('feedback/index.html.twig', [
             'feedbacks' => $feedbacks,
             'feedbacksByEvent' => $feedbacksByEvent,
             'averageRating' => $feedbackRepository->getAverageRating(),
+            'events' => $events,
+            'showForm' => true
         ]);
     }
 
@@ -57,7 +74,7 @@ class FeedbackController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $feedback->setUser($this->getUser());
+            // The user is now set through the form
             $feedback->setCreatedAt(new \DateTimeImmutable());
             
             $entityManager->persist($feedback);
@@ -156,6 +173,17 @@ class FeedbackController extends AbstractController
         $feedback->setUsername($data['username']);
         $feedback->setTransaction($transaction);
         
+        // Set a default user (use transaction's user if available, otherwise use a default user ID 1)
+        if ($transaction->getUser()) {
+            $feedback->setUser($transaction->getUser());
+        } else {
+            $defaultUser = $entityManager->getRepository(User::class)->find(1);
+            if (!$defaultUser) {
+                return $this->json(['error' => 'Default user not found'], 500);
+            }
+            $feedback->setUser($defaultUser);
+        }
+        
         // Handle photo upload if present
         if (isset($data['photo'])) {
             // Implement photo upload logic here
@@ -228,5 +256,162 @@ class FeedbackController extends AbstractController
         
         $this->addFlash('success', '10 placeholder feedback entries have been added successfully!');
         return $this->redirectToRoute('app_feedback_index');
+    }
+
+    #[Route('/form', name: 'app_feedback_form', methods: ['GET'])]
+    public function index(EntityManagerInterface $entityManager): Response
+    {
+        return $this->render('feedback/index.html.twig', [
+            'events' => $this->getEventsList($entityManager)
+        ]);
+    }
+    
+    #[Route('/form/submit', name: 'app_feedback_submit', methods: ['POST'])]
+    public function submit(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $data = [
+            'name' => $request->request->get('name'),
+            'email' => $request->request->get('email'),
+            'event' => $request->request->get('event'),
+            'type' => $request->request->get('type', 'general'),
+            'rating' => (int) $request->request->get('rating', 0),
+            'message' => $request->request->get('message'),
+            'submitted_from' => $request->getHost() . $request->getRequestUri(),
+        ];
+        
+        // Submit feedback through FormSpree service
+        $result = $this->formSpreeService->submitFeedback($data);
+        
+        // If successful, store in database too
+        if ($result['success']) {
+            try {
+                $feedback = new Feedback();
+                $feedback->setUsername($data['name']);
+                $feedback->setComment($data['message']);
+                $feedback->setRating($data['rating']);
+                $feedback->setEventName($data['event']);
+                $feedback->setCreatedAt(new \DateTimeImmutable());
+                $feedback->setIsAdmin(false);
+                
+                // Set user if logged in
+                if ($this->getUser()) {
+                    $feedback->setUser($this->getUser());
+                }
+                
+                $entityManager->persist($feedback);
+                $entityManager->flush();
+            } catch (\Exception $e) {
+                // Log the error but continue with the thank you page
+                // since FormSpree submission was successful
+            }
+            
+            $this->addFlash('success', $result['message']);
+            return $this->redirectToRoute('app_feedback_thank_you');
+        } else {
+            $this->addFlash('error', $result['message']);
+            return $this->render('feedback/index.html.twig', [
+                'error' => $result['message'],
+                'data' => $data,
+                'events' => $this->getEventsList($entityManager)
+            ]);
+        }
+    }
+    
+    /**
+     * Helper method to get events list
+     */
+    private function getEventsList(EntityManagerInterface $entityManager): array
+    {
+        $feedbackRepository = $entityManager->getRepository(Feedback::class);
+        
+        // Try to get events from repository
+        $events = $feedbackRepository->getEventsWithStats();
+        
+        // If no events found yet, add some defaults
+        if (empty($events)) {
+            $events = [
+                ['name' => 'Annual Regatta 2023', 'rating' => 4.8, 'count' => 24],
+                ['name' => 'Summer Sailing Camp', 'rating' => 4.5, 'count' => 18],
+                ['name' => 'Coastal Race Challenge', 'rating' => 4.9, 'count' => 15],
+                ['name' => 'Beginners Yacht Training', 'rating' => 4.3, 'count' => 12],
+                ['name' => 'Nautical Festival', 'rating' => 4.7, 'count' => 20]
+            ];
+        }
+        
+        return $events;
+    }
+    
+    #[Route('/form/thank-you', name: 'app_feedback_thank_you', methods: ['GET'])]
+    public function thankYou(): Response
+    {
+        return $this->render('feedback/thank_you.html.twig');
+    }
+    
+    #[Route('/api/feedback', name: 'api_feedback_submit', methods: ['POST'])]
+    public function apiSubmit(Request $request): JsonResponse
+    {
+        // Get JSON data from request
+        $data = json_decode($request->getContent(), true);
+        
+        if (!$data) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Invalid JSON data'
+            ], 400);
+        }
+        
+        // Submit feedback through FormSpree service
+        $result = $this->formSpreeService->submitFeedback($data);
+        
+        // Return JSON response with appropriate status code
+        return $this->json($result, $result['success'] ? 200 : 400);
+    }
+
+    #[Route('/event/{eventName}', name: 'app_feedback_by_event', methods: ['GET'])]
+    public function viewEventFeedback(string $eventName, FeedbackRepository $feedbackRepository): Response
+    {
+        // URL decode the event name
+        $decodedEventName = urldecode($eventName);
+        
+        // Get feedback for this specific event
+        $feedbacks = $feedbackRepository->createQueryBuilder('f')
+            ->where('f.eventName = :eventName')
+            ->andWhere('f.isAdmin = :isAdmin')
+            ->setParameter('eventName', $decodedEventName)
+            ->setParameter('isAdmin', false)
+            ->orderBy('f.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+            
+        // Calculate average rating for this event
+        $totalRating = 0;
+        $count = 0;
+        
+        foreach ($feedbacks as $feedback) {
+            $totalRating += $feedback->getRating();
+            $count++;
+        }
+        
+        $averageRating = $count > 0 ? round($totalRating / $count, 1) : 0;
+        
+        return $this->render('feedback/event.html.twig', [
+            'event' => $decodedEventName,
+            'feedbacks' => $feedbacks,
+            'averageRating' => $averageRating,
+            'count' => $count
+        ]);
+    }
+    
+    #[Route('/leave-feedback/event/{eventName}', name: 'app_leave_feedback_for_event', methods: ['GET'])]
+    public function leaveFeedbackForEvent(string $eventName): Response
+    {
+        // URL decode the event name
+        $decodedEventName = urldecode($eventName);
+        
+        return $this->render('feedback/index.html.twig', [
+            'data' => [
+                'event' => $decodedEventName
+            ]
+        ]);
     }
 }

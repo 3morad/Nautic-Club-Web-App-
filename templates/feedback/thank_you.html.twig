@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Thank You for Your Feedback - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .thank-you-container {
+            max-width: 600px;
+            margin: 5rem auto;
+            text-align: center;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .thank-you-icon {
+            font-size: 4rem;
+            color: #4CAF50;
+            margin-bottom: 1.5rem;
+        }
+        
+        .thank-you-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .thank-you-message {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .return-btn {
+            display: inline-block;
+            background-color: #4285F4;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        
+        .return-btn:hover {
+            background-color: #3367D6;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="thank-you-container">
+    <div class="thank-you-icon">✓</div>
+    <h1 class="thank-you-title">Thank You!</h1>
+    
+    <p class="thank-you-message">
+        We appreciate you taking the time to share your feedback with us.<br>
+        Your input helps us improve our services and events.
+    </p>
+    
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
+    <div class="actions">
+        <a href="{{ path('app_feedback_form') }}" class="return-btn">Return to Feedback Page</a>
+    </div>
+</div>
+{% endblock %} 

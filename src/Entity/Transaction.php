@@ -35,6 +35,9 @@ class Transaction
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $qrCode = null;
 
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $gatewayReference = null;
+
     #[ORM\ManyToOne(inversedBy: 'transactions')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -117,6 +120,17 @@ class Transaction
     public function setQrCode(?string $qrCode): self
     {
         $this->qrCode = $qrCode;
+        return $this;
+    }
+
+    public function getGatewayReference(): ?string
+    {
+        return $this->gatewayReference;
+    }
+
+    public function setGatewayReference(?string $gatewayReference): self
+    {
+        $this->gatewayReference = $gatewayReference;
         return $this;
     }
 

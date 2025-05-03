@@ -1,0 +1,268 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Scan Ticket - {{ ticket.eventName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .scan-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .scan-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .scanner-box {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border: 2px solid #6366F1;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        #qr-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .scan-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .scan-target {
+            width: 200px;
+            height: 200px;
+            border: 2px solid white;
+            border-radius: 20px;
+            box-shadow: 0 0 0 100vmax rgba(0,0,0,0.5);
+        }
+        
+        .scan-status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .scan-success {
+            background-color: #ECFDF5;
+            color: #065F46;
+            border: 1px solid #10B981;
+        }
+        
+        .scan-error {
+            background-color: #FEEBE9;
+            color: #991B1B;
+            border: 1px solid #F87171;
+        }
+        
+        .scan-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            border: none;
+        }
+        
+        .btn-primary {
+            background-color: #6366F1;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #9CA3AF;
+            color: white;
+        }
+        
+        .ticket-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 2rem;
+            border: 1px solid #e9ecef;
+        }
+        
+        .ticket-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .ticket-detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="scan-container">
+    <div class="scan-header">
+        <h1>Scan Ticket</h1>
+        <p>Position the QR code in the center of the camera view</p>
+    </div>
+    
+    <div class="scanner-box">
+        <video id="qr-video" autoplay></video>
+        <div class="scan-overlay">
+            <div class="scan-target"></div>
+        </div>
+    </div>
+    
+    <div id="scan-status" class="scan-status"></div>
+    
+    <div class="scan-controls">
+        <button id="start-scan" class="btn btn-primary">Start Scanner</button>
+        <a href="{{ path('ticket_index') }}" class="btn btn-secondary">Back to Tickets</a>
+    </div>
+    
+    <div id="ticket-details" class="ticket-details" style="display: none;">
+        <h2>Ticket Information</h2>
+        <div class="ticket-detail-row">
+            <span>Event:</span>
+            <span id="event-name"></span>
+        </div>
+        <div class="ticket-detail-row">
+            <span>Date:</span>
+            <span id="event-date"></span>
+        </div>
+        <div class="ticket-detail-row">
+            <span>Type:</span>
+            <span id="ticket-type"></span>
+        </div>
+        <div class="ticket-detail-row">
+            <span>Status:</span>
+            <span id="ticket-status"></span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/html5-qrcode@2.3.4/html5-qrcode.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const html5QrCode = new Html5Qrcode("qr-video");
+            const scanStatusEl = document.getElementById('scan-status');
+            const ticketDetailsEl = document.getElementById('ticket-details');
+            const startScanButton = document.getElementById('start-scan');
+            
+            let scanning = false;
+            
+            function showSuccess(message) {
+                scanStatusEl.className = 'scan-status scan-success';
+                scanStatusEl.textContent = message;
+                scanStatusEl.style.display = 'block';
+            }
+            
+            function showError(message) {
+                scanStatusEl.className = 'scan-status scan-error';
+                scanStatusEl.textContent = message;
+                scanStatusEl.style.display = 'block';
+            }
+            
+            function hideStatus() {
+                scanStatusEl.style.display = 'none';
+            }
+            
+            function validateTicket(ticketData) {
+                // Make an AJAX request to validate the ticket
+                fetch('{{ path('ticket_validate', {'id': ticket.id}) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'ticket_data': ticketData
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        showSuccess('Ticket is valid!');
+                        
+                        // Display ticket details
+                        document.getElementById('event-name').textContent = data.ticket.event;
+                        document.getElementById('event-date').textContent = data.ticket.date;
+                        document.getElementById('ticket-type').textContent = data.ticket.type;
+                        document.getElementById('ticket-status').textContent = 'Valid';
+                        
+                        ticketDetailsEl.style.display = 'block';
+                    } else {
+                        showError('Invalid ticket: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Error validating ticket');
+                });
+            }
+            
+            startScanButton.addEventListener('click', function() {
+                if (scanning) {
+                    html5QrCode.stop().then(() => {
+                        scanning = false;
+                        startScanButton.textContent = 'Start Scanner';
+                        hideStatus();
+                        ticketDetailsEl.style.display = 'none';
+                    }).catch(err => {
+                        console.error('Error stopping scanner:', err);
+                    });
+                } else {
+                    // Request camera permissions and start scanning
+                    html5QrCode.start(
+                        { facingMode: "environment" },
+                        {
+                            fps: 10,
+                            qrbox: 250
+                        },
+                        (decodedText) => {
+                            // QR Code scanned successfully
+                            html5QrCode.pause();
+                            validateTicket(decodedText);
+                        },
+                        (errorMessage) => {
+                            // QR Code scanning failed
+                            console.warn(`QR Code scanning error: ${errorMessage}`);
+                        }
+                    )
+                    .then(() => {
+                        scanning = true;
+                        startScanButton.textContent = 'Stop Scanner';
+                    })
+                    .catch((err) => {
+                        showError('Error starting camera: ' + err);
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %} 

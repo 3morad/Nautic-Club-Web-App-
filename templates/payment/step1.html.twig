@@ -1,0 +1,208 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Select Payment Method - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .payment-container {
+            max-width: 450px;
+            margin: 3rem auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .payment-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        
+        .payment-header h1 {
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .payment-progress {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+        .progress-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+            margin: 0 3px;
+        }
+        
+        .progress-dot.active {
+            background-color: #999;
+        }
+        
+        .payment-methods {
+            padding: 1rem 1.5rem;
+        }
+        
+        .payment-method {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .payment-method:last-child {
+            border-bottom: none;
+        }
+        
+        .payment-method-logo {
+            width: 40px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+        
+        .payment-method-logo img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        
+        .payment-method-name {
+            flex-grow: 1;
+            font-size: 0.9rem;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .payment-method.selected .payment-method-name {
+            color: #333;
+        }
+        
+        .payment-method-check {
+            color: #4CAF50;
+            opacity: 0;
+        }
+        
+        .payment-method.selected .payment-method-check {
+            opacity: 1;
+        }
+        
+        .payment-footer {
+            background-color: #4285F4;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .next-step-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .next-step-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="payment-container">
+    <div class="payment-header">
+        <h1>Payment Method</h1>
+        <div class="payment-progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
+            <div class="progress-dot"></div>
+        </div>
+    </div>
+    
+    <form id="payment-method-form" method="POST">
+        <div class="payment-methods">
+            <div class="payment-method" data-method="visa">
+                <div class="payment-method-logo">
+                    <img src="{{ asset('images/visa.png') }}" alt="Visa">
+                </div>
+                <div class="payment-method-name">Visa Card</div>
+                <div class="payment-method-check">✓</div>
+                <input type="radio" name="payment_method" value="visa" style="display: none;">
+            </div>
+            
+            <div class="payment-method" data-method="mastercard">
+                <div class="payment-method-logo">
+                    <img src="{{ asset('images/mastercard.png') }}" alt="Mastercard">
+                </div>
+                <div class="payment-method-name">Mastercard</div>
+                <div class="payment-method-check">✓</div>
+                <input type="radio" name="payment_method" value="mastercard" style="display: none;">
+            </div>
+            
+            <div class="payment-method" data-method="paypal">
+                <div class="payment-method-logo">
+                    <img src="{{ asset('images/paypal.png') }}" alt="PayPal">
+                </div>
+                <div class="payment-method-name">PayPal</div>
+                <div class="payment-method-check">✓</div>
+                <input type="radio" name="payment_method" value="paypal" style="display: none;">
+            </div>
+            
+            <div class="payment-method" data-method="voucher">
+                <div class="payment-method-logo">
+                    <img src="{{ asset('images/voucher.png') }}" alt="Voucher">
+                </div>
+                <div class="payment-method-name">Voucher</div>
+                <div class="payment-method-check">✓</div>
+                <input type="radio" name="payment_method" value="voucher" style="display: none;">
+            </div>
+        </div>
+        
+        <div class="payment-footer">
+            <button type="submit" class="next-step-btn" disabled>Next Step →</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            const nextButton = document.querySelector('.next-step-btn');
+            
+            paymentMethods.forEach(method => {
+                method.addEventListener('click', function() {
+                    // Remove selected class from all methods
+                    paymentMethods.forEach(m => m.classList.remove('selected'));
+                    
+                    // Add selected class to clicked method
+                    this.classList.add('selected');
+                    
+                    // Check the radio button
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    
+                    // Enable next button
+                    nextButton.disabled = false;
+                });
+            });
+        });
+    </script>
+{% endblock %} 

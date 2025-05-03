@@ -64,4 +64,46 @@ class FeedbackRepository extends ServiceEntityRepository
 
         return $result ? round($result, 1) : 0.0;
     }
+
+    /**
+     * Get all events with their feedback stats
+     *
+     * @return array Array of events with name, rating and count
+     */
+    public function getEventsWithStats(): array
+    {
+        $eventNames = $this->createQueryBuilder('f')
+            ->select('f.eventName')
+            ->where('f.eventName IS NOT NULL')
+            ->andWhere('f.isAdmin = :isAdmin')
+            ->setParameter('isAdmin', false)
+            ->groupBy('f.eventName')
+            ->getQuery()
+            ->getScalarResult();
+            
+        $events = [];
+        
+        foreach ($eventNames as $eventData) {
+            $eventName = $eventData['eventName'];
+            
+            // Get feedback for this event
+            $result = $this->createQueryBuilder('f')
+                ->select('COUNT(f.id) as count, AVG(f.rating) as rating')
+                ->where('f.eventName = :eventName')
+                ->andWhere('f.isAdmin = :isAdmin')
+                ->setParameter('eventName', $eventName)
+                ->setParameter('isAdmin', false)
+                ->getQuery()
+                ->getSingleResult();
+                
+            // Add to events array
+            $events[] = [
+                'name' => $eventName,
+                'rating' => $result['rating'] ? round($result['rating'], 1) : 0,
+                'count' => (int)$result['count']
+            ];
+        }
+        
+        return $events;
+    }
 } 

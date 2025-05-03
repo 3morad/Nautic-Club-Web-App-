@@ -1,0 +1,177 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Share Your Feedback - Nautic Club{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .rating-selector {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+        .rating-selector input {
+            display: none;
+        }
+        .rating-selector label {
+            cursor: pointer;
+            font-size: 2rem;
+            padding: 0 0.2em;
+            color: #d1d5db;
+            transition: color 0.2s;
+        }
+        .rating-selector label:hover,
+        .rating-selector label:hover ~ label,
+        .rating-selector input:checked ~ label {
+            color: #fbbf24;
+        }
+        
+        .form-card {
+            background: linear-gradient(to bottom right, white 0%, #f9fafb 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f3f4f6;
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-input {
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+            border-color: #8b5cf6;
+        }
+        
+        .form-submit-btn {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .form-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="form-card">
+            <div class="form-header">
+                <h1 class="text-3xl font-bold mb-2">Share Your Experience</h1>
+                <p class="text-purple-100">Your feedback helps us improve and helps others choose the best events.</p>
+            </div>
+            
+            <div class="px-6 pb-6">
+                {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+                    <div>
+                        {{ form_label(form.eventName, 'Which event did you attend?', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.eventName, {'attr': {
+                            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 form-input',
+                            'placeholder': 'e.g., Annual Regatta 2023, Summer Sailing Camp...'
+                        }}) }}
+                        {{ form_errors(form.eventName, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+
+                    <div>
+                        {{ form_label(form.username, 'Your Name', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.username, {'attr': {
+                            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 form-input',
+                            'placeholder': 'How should we address you?'
+                        }}) }}
+                        {{ form_errors(form.username, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+
+                    {% if app.user %}
+                        {{ form_widget(form.user, {'value': app.user.id}) }}
+                    {% else %}
+                        {# Set to a default user ID if user is not logged in (example ID 1) #}
+                        {{ form_widget(form.user, {'value': 1}) }}
+                    {% endif %}
+
+                    <div>
+                        {{ form_label(form.rating, 'How would you rate your experience?', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-3'}}) }}
+                        <div class="rating-selector">
+                            {% for child in form.rating %}
+                                {{ form_widget(child) }}
+                                <label for="{{ child.vars.id }}" title="{{ child.vars.value }} stars">★</label>
+                            {% endfor %}
+                        </div>
+                        {{ form_errors(form.rating, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+
+                    <div>
+                        {{ form_label(form.comment, 'Tell us about your experience', {'label_attr': {'class': 'block text-sm font-medium text-gray-700 mb-1'}}) }}
+                        {{ form_widget(form.comment, {'attr': {
+                            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 form-input h-32',
+                            'placeholder': 'What did you enjoy? What could we improve?'
+                        }}) }}
+                        {{ form_errors(form.comment, {'attr': {'class': 'mt-2 text-sm text-red-600'}}) }}
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg text-sm text-gray-600 mb-6">
+                        <p class="mb-1"><i class="fas fa-info-circle text-purple-500 mr-2"></i> By submitting, you agree to our community guidelines.</p>
+                        <p>Your feedback helps us improve and may be featured on our website.</p>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <a href="{{ path('app_feedback_index') }}" class="mr-4 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            Cancel
+                        </a>
+                        <button type="submit" class="form-submit-btn py-2 px-6 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-purple-700">
+                            Submit Feedback
+                        </button>
+                    </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhance the star rating selector
+    const ratingInputs = document.querySelectorAll('.rating-selector input[type="radio"]');
+    const ratingLabels = document.querySelectorAll('.rating-selector label');
+    
+    // Add visual feedback when a rating is selected
+    ratingInputs.forEach((input, index) => {
+        input.addEventListener('change', () => {
+            // Reset all stars
+            ratingLabels.forEach(label => {
+                label.classList.remove('text-yellow-400');
+                label.classList.add('text-gray-300');
+            });
+            
+            // Highlight selected stars
+            for (let i = 0; i <= index; i++) {
+                ratingLabels[ratingLabels.length - 1 - i].classList.remove('text-gray-300');
+                ratingLabels[ratingLabels.length - 1 - i].classList.add('text-yellow-400');
+            }
+        });
+    });
+    
+    // Check if any rating is already selected on page load
+    ratingInputs.forEach((input, index) => {
+        if (input.checked) {
+            for (let i = 0; i <= index; i++) {
+                ratingLabels[ratingLabels.length - 1 - i].classList.remove('text-gray-300');
+                ratingLabels[ratingLabels.length - 1 - i].classList.add('text-yellow-400');
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 
