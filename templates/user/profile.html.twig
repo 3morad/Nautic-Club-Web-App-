@@ -1,0 +1,10 @@
+<h1>Your Profile</h1>
+
+<ul>
+    <li><strong>Username:</strong> {{ user.username }}</li>
+    <li><strong>Email:</strong> {{ user.email }}</li>
+    <li><strong>Name:</strong> {{ user.firstName }} {{ user.lastName }}</li>
+    <li><strong>Status:</strong> {{ user.status }}</li>
+</ul>
+
+<a href="{{ path('user_edit_profile') }}">Edit your information</a>

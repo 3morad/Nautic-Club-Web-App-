@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User{% endblock %}
+
+{% block body %}
+    <h1>Edit User</h1>
+
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit">Save Changes</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('admin_dashboard') }}">Back to Dashboard</a>
+{% endblock %}

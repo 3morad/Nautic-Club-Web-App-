@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - NautiClub</title>
+    <style>
+        body {
+            background: #e0f7ff;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .register-box {
+            background-color: #fff;
+            padding: 35px 30px 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 119, 204, 0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            color: #0077cc;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background-color: #0077cc;
+            color: white;
+            padding: 12px;
+            border: none;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #005fa3;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #0077cc;
+            font-size: 0.95em;
+            text-decoration: none;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <h2>Create Your Account</h2>
+
+        <form method="post" autocomplete="off" onsubmit="return validateForm()">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="off">
+
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" required autocomplete="off">
+
+            <label for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" required autocomplete="off">
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required autocomplete="off">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="new-password">
+
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+
+            <button type="submit" class="btn">Register</button>
+        </form>
+
+        <div class="back-link">
+            <a href="{{ path('app_login') }}">← Back to login</a>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            const username = document.getElementById("username").value.trim();
+            const firstName = document.getElementById("first_name").value.trim();
+            const lastName = document.getElementById("last_name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm_password").value;
+
+            const nameRegex = /^[^\d]+$/;
+            const usernameRegex = /^(?!\d+$)[\w\-]+$/;
+
+            if (!usernameRegex.test(username)) {
+                alert("Username cannot consist of only numbers.");
+                return false;
+            }
+
+            if (!nameRegex.test(firstName)) {
+                alert("First name cannot contain numbers.");
+                return false;
+            }
+
+            if (!nameRegex.test(lastName)) {
+                alert("Last name cannot contain numbers.");
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+</html>

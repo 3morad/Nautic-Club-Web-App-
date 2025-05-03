@@ -1,0 +1,8 @@
+ewz_recaptcha:
+    # UPDATE THESE WITH YOUR NEW KEYS FROM GOOGLE RECAPTCHA ADMIN
+    public_key: '6LfViiwrAAAAAJp_Mo3B7xc6ymO0Ba_6Wf3v7Muo'
+    private_key: '6LfViiwrAAAAAIA1lrSEqqe45GUCi_gZKzU6IXuU'
+    locale_key: 'en'
+    enabled: true
+    verify_host: false
+    ajax: false

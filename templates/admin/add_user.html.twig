@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Add New User</h1>
+
+    <style>
+        form {
+            max-width: 400px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 6px;
+        }
+        button {
+            padding: 8px 14px;
+        }
+    </style>
+
+    <form method="post" autocomplete="off">
+        {# Prevent browser autofill with hidden fake fields #}
+        <input type="text" name="fakeuser" style="display:none">
+        <input type="password" name="fakepass" style="display:none">
+
+        {{ form_start(form, {'attr': {'autocomplete': 'off'}}) }}
+            {{ form_row(form.username) }}
+            {{ form_row(form.password) }}
+            {{ form_row(form.email) }}
+            {{ form_row(form.first_name) }}
+            {{ form_row(form.last_name) }}
+            {{ form_row(form.status) }}
+            {{ form_row(form.user_type) }}
+
+            <button type="submit">Create User</button>
+        {{ form_end(form) }}
+    </form>
+{% endblock %}
