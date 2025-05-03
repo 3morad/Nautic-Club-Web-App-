@@ -1,5 +1,9 @@
 twig:
     default_path: '%kernel.project_dir%/templates'
+    paths:
+        '%kernel.project_dir%/src/EventCalendar/Resources/views': EventCalendar
+        '%kernel.project_dir%/src/EmailSystem/Resources/views': EmailSystem
+    form_themes: ['bootstrap_5_layout.html.twig']
 
 when@test:
     twig:

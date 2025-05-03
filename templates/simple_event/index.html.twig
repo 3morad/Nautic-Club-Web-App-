@@ -8,9 +8,11 @@
             <h1 class="text-3xl font-bold text-purple-600 flex items-center">
                 <i class="fas fa-calendar-alt mr-3"></i>Event Gallery
             </h1>
+            {% if is_granted('ROLE_ADMIN') %}
             <a href="{{ path('simple_event_new') }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
                 <i class="fas fa-plus-circle mr-2"></i>New Event
             </a>
+            {% endif %}
         </div>
 
         {% for message in app.flashes('success') %}
@@ -22,63 +24,81 @@
         {% if events|length > 0 %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for event in events %}
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
-                        {% if event.imageFilename %}
-                            <div class="h-48 bg-gray-100 overflow-hidden">
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
+                        <div class="h-48 relative overflow-hidden">
+                            {% if event.imageFilename %}
                                 <img src="{{ asset('uploads/events/' ~ event.imageFilename) }}" 
                                      class="w-full h-full object-cover" alt="{{ event.name }}">
-                            </div>
-                        {% else %}
-                            <div class="h-48 bg-gray-200 flex items-center justify-center">
-                                <i class="fas fa-image text-4xl text-gray-400"></i>
-                            </div>
-                        {% endif %}
+                            {% else %}
+                                <div class="h-full bg-blue-100 flex items-center justify-center">
+                                    <i class="fas fa-water text-6xl text-blue-400"></i>
+                                </div>
+                            {% endif %}
+                        </div>
                         
-                        <div class="p-4">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-2">{{ event.name }}</h3>
+                        <div class="p-5">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-1">
+                                {{ event.name }}
+                            </h3>
                             
-                            <div class="text-sm text-gray-600 mb-4 space-y-2">
-                                <div class="flex items-center">
-                                    <i class="fas fa-clock mr-2 text-purple-500"></i>
-                                    <span>{{ event.eventDate ? event.eventDate|date('M d, Y \\a\\t g:i A') : 'N/A' }}</span>
-                                </div>
-                                
-                                {% if event.locationWeather %}
-                                <div class="flex items-center">
-                                    <i class="fas fa-map-marker-alt mr-2 text-purple-500"></i>
-                                    <span>{{ event.locationWeather.name }}</span>
-                                </div>
-                                {% endif %}
+                            <div class="flex items-center text-gray-500 text-sm mb-1">
+                                <i class="far fa-clock text-purple-500 mr-2 w-4 text-center"></i>
+                                <span>{{ event.eventDate ? event.eventDate|date('M d, Y \\a\\t g:i A') : 'N/A' }}</span>
                             </div>
                             
-                            <div class="flex space-x-2 mt-4">
+                            {% if event.locationWeather %}
+                            <div class="flex items-center text-gray-500 text-sm mb-3">
+                                <i class="fas fa-map-marker-alt text-purple-500 mr-2 w-4 text-center"></i>
+                                <span>{{ event.locationWeather.name }}</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="flex justify-center mt-4">
                                 <a href="{{ path('simple_event_show', {'id': event.id}) }}" 
-                                   class="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition flex-1 text-center">
-                                    <i class="fas fa-eye mr-2"></i>View
-                                </a>
-                                <a href="{{ path('simple_event_edit', {'id': event.id}) }}" 
-                                   class="px-3 py-2 bg-yellow-500 text-white text-sm rounded hover:bg-yellow-600 transition flex-1 text-center">
-                                    <i class="fas fa-edit mr-2"></i>Edit
+                                   class="inline-flex items-center px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors">
+                                    <i class="far fa-eye mr-2"></i> View
                                 </a>
                             </div>
                             
-                            <div class="mt-2">
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <div class="flex space-x-2 mt-4">
+                                <a href="{{ path('simple_event_edit', {'id': event.id}) }}" 
+                                   class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md transition-colors">
+                                    <i class="fas fa-edit mr-2"></i> Edit
+                                </a>
+                                
                                 <form method="post" action="{{ path('simple_event_delete', {'id': event.id}) }}" 
-                                      onsubmit="return confirm('Are you sure you want to delete this event?');" class="w-full">
+                                      onsubmit="return confirm('Are you sure you want to delete this event?');" class="flex-1">
                                     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
-                                    <button type="submit" class="w-full px-3 py-2 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition flex items-center justify-center">
-                                        <i class="fas fa-trash mr-2"></i>Delete
+                                    <button type="submit" class="w-full px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors flex items-center justify-center">
+                                        <i class="fas fa-trash-alt mr-2"></i> Delete
                                     </button>
                                 </form>
                             </div>
+                            {% endif %}
                         </div>
                     </div>
                 {% endfor %}
             </div>
+            
+            <div class="mt-8 flex justify-between items-center text-sm text-gray-600">
+                <div>
+                    Showing {{ events|length }} event{{ events|length > 1 ? 's' : '' }}
+                </div>
+                
+                <div class="flex space-x-1">
+                    {% set total_pages = (events|length / 10)|round(0, 'ceil') %}
+                    {% for i in 1..total_pages %}
+                        <a href="#" class="{{ i == 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-700' }} px-3 py-1 rounded hover:bg-purple-500 hover:text-white transition-colors">
+                            {{ i }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
         {% else %}
             <div class="bg-blue-50 text-blue-700 p-8 rounded-lg text-center">
                 <i class="fas fa-calendar-times text-5xl mb-4"></i>
-                <p class="text-lg">No events found. <a href="{{ path('simple_event_new') }}" class="text-blue-600 hover:underline font-semibold">Create one</a>!</p>
+                <p class="text-lg">No events found. {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('simple_event_new') }}" class="text-blue-600 hover:underline font-semibold">Create one</a>!{% endif %}</p>
             </div>
         {% endif %}
     </div>

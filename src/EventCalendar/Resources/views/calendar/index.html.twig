@@ -1,0 +1,206 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Event Calendar{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .calendar-day {
+            min-height: 100px;
+            position: relative;
+        }
+        .today {
+            background-color: rgba(167, 139, 250, 0.1);
+            border: 2px solid #A78BFA !important;
+        }
+        .day-number {
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .today .day-number {
+            background-color: #A78BFA;
+            color: white;
+        }
+        .event-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-purple-600 flex items-center">
+            <i class="fas fa-calendar-alt mr-3"></i>Event Calendar
+        </h1>
+        <a href="{{ path('app_event_index') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Events
+        </a>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-filter mr-2"></i>Filter Events
+            </h2>
+            
+            <form method="get" action="{{ path('event_calendar_index') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <input type="hidden" name="year" value="{{ calendarData.year }}">
+                <input type="hidden" name="month" value="{{ calendarData.month }}">
+                
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <select id="location" name="location" class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50">
+                        <option value="">All Locations</option>
+                        {% for location in locations %}
+                            <option value="{{ location.id }}" {% if filters.location == location.id %}selected{% endif %}>
+                                {{ location.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="price-range" class="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="min_price" name="min_price" placeholder="Min" min="0" step="0.01" value="{{ filters.minPrice }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50">
+                        <input type="number" id="max_price" name="max_price" placeholder="Max" min="0" step="0.01" value="{{ filters.maxPrice }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <input type="text" id="search" name="search" placeholder="Event name or description" value="{{ filters.searchTerm }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50">
+                </div>
+                
+                <div class="flex items-end">
+                    <div class="flex items-center mb-1 mr-4">
+                        <input type="checkbox" id="has_availability" name="has_availability" value="1" {% if filters.hasAvailability %}checked{% endif %} class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500 focus:ring-opacity-50">
+                        <label for="has_availability" class="ml-2 text-sm text-gray-700">Available Only</label>
+                    </div>
+                    
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md">
+                        <i class="fas fa-search mr-1"></i>Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Calendar Header -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="text-2xl font-bold text-gray-800">
+            {{ calendarData.monthName }} {{ calendarData.year }}
+        </div>
+        <div class="flex space-x-2">
+            <a href="{{ path('event_calendar_index', {'year': calendarData.prevYear, 'month': calendarData.prevMonth, 'location': filters.location, 'min_price': filters.minPrice, 'max_price': filters.maxPrice, 'has_availability': filters.hasAvailability, 'search': filters.searchTerm}) }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition">
+                <i class="fas fa-chevron-left mr-1"></i>Previous
+            </a>
+            <a href="{{ path('event_calendar_index', {'year': calendarData.nextYear, 'month': calendarData.nextMonth, 'location': filters.location, 'min_price': filters.minPrice, 'max_price': filters.maxPrice, 'has_availability': filters.hasAvailability, 'search': filters.searchTerm}) }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition">
+                Next<i class="fas fa-chevron-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Calendar Grid -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        <!-- Day Labels -->
+        <div class="grid grid-cols-7 bg-gray-100 text-center py-2 font-medium text-gray-700">
+            <div>Monday</div>
+            <div>Tuesday</div>
+            <div>Wednesday</div>
+            <div>Thursday</div>
+            <div>Friday</div>
+            <div>Saturday</div>
+            <div>Sunday</div>
+        </div>
+        
+        <!-- Calendar Days -->
+        {% for week in calendarData.calendar %}
+            <div class="grid grid-cols-7 border-t border-gray-200">
+                {% for day in week %}
+                    {% if day %}
+                        <div class="border-r border-gray-200 p-2 calendar-day {% if day.isToday %}today{% endif %} {% if loop.last %}border-r-0{% endif %}">
+                            <span class="day-number">{{ day.day }}</span>
+                            
+                            <!-- Events for this day -->
+                            {% if day.events|length > 0 %}
+                                <div class="mt-6 space-y-1">
+                                    {% if day.events|length <= 3 %}
+                                        {% for event in day.events %}
+                                            <a href="{{ path('simple_event_show', {'id': event.id}) }}" class="block text-sm truncate hover:underline">
+                                                <span class="event-dot" style="background-color: {% if event.isFull %}#EF4444{% else %}#22C55E{% endif %};"></span>
+                                                {{ event.name }}
+                                            </a>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for event in day.events|slice(0, 2) %}
+                                            <a href="{{ path('simple_event_show', {'id': event.id}) }}" class="block text-sm truncate hover:underline">
+                                                <span class="event-dot" style="background-color: {% if event.isFull %}#EF4444{% else %}#22C55E{% endif %};"></span>
+                                                {{ event.name }}
+                                            </a>
+                                        {% endfor %}
+                                        <a href="{{ path('event_calendar_day', {'year': calendarData.year, 'month': calendarData.month, 'day': day.day}) }}" class="block text-xs text-blue-600 hover:underline">
+                                            + {{ day.events|length - 2 }} more events
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if day.events|length > 0 %}
+                                <div class="mt-1 text-right">
+                                    <a href="{{ path('event_calendar_day', {'year': calendarData.year, 'month': calendarData.month, 'day': day.day}) }}" class="text-xs text-blue-600 hover:underline">
+                                        View All
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="border-r border-gray-200 bg-gray-50 p-2 {% if loop.last %}border-r-0{% endif %}"></div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Summary Section -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-info-circle mr-2"></i>Summary
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="text-3xl font-bold text-purple-600">{{ calendarData.totalEvents }}</div>
+                    <div class="text-gray-700">Events this month</div>
+                </div>
+                
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <span class="event-dot" style="background-color: #22C55E;"></span>
+                        <span class="text-gray-700">Available</span>
+                    </div>
+                </div>
+                
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <span class="event-dot" style="background-color: #EF4444;"></span>
+                        <span class="text-gray-700">Fully Booked</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

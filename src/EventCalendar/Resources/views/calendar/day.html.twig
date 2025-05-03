@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Events on {{ date|date('F d, Y') }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-purple-600 flex items-center">
+            <i class="fas fa-calendar-day mr-3"></i>Events on {{ date|date('F d, Y') }}
+        </h1>
+        <a href="{{ path('event_calendar_index', {'year': year, 'month': month}) }}" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Calendar
+        </a>
+    </div>
+
+    {% if events|length > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {% for event in events %}
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    {% if event.imageFilename %}
+                        <div class="h-48 overflow-hidden">
+                            <img src="{{ asset('uploads/events/' ~ event.imageFilename) }}" alt="{{ event.name }}" class="w-full h-full object-cover">
+                        </div>
+                    {% endif %}
+                    
+                    <div class="p-6">
+                        <h2 class="text-xl font-bold text-gray-800 mb-2">{{ event.name }}</h2>
+                        
+                        <div class="flex items-center text-gray-600 mb-3">
+                            <i class="fas fa-clock w-5 text-center"></i>
+                            <span class="ml-2">{{ event.eventDate|date('g:i A') }}</span>
+                        </div>
+                        
+                        <div class="flex items-center text-gray-600 mb-3">
+                            <i class="fas fa-map-marker-alt w-5 text-center"></i>
+                            <span class="ml-2">{{ event.locationWeather.name }}, {{ event.locationWeather.region }}</span>
+                        </div>
+                        
+                        <div class="flex items-center text-gray-600 mb-4">
+                            <i class="fas fa-users w-5 text-center"></i>
+                            <span class="ml-2">
+                                {% if event.isFull %}
+                                    <span class="text-red-600">Fully Booked</span>
+                                {% elseif event.capacity %}
+                                    {{ event.availableSpots }}/{{ event.capacity }} spots available
+                                {% else %}
+                                    Unlimited spots
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center text-gray-600 mb-5">
+                            <i class="fas fa-tag w-5 text-center"></i>
+                            <span class="ml-2 font-semibold">
+                                {% if event.price %}
+                                    ${{ event.price|number_format(2) }}
+                                {% else %}
+                                    Free
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between mt-6">
+                            <a href="{{ path('simple_event_show', {'id': event.id}) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md flex items-center transition">
+                                <i class="fas fa-info-circle mr-2"></i>Details
+                            </a>
+                            
+                            <div class="space-x-2">
+                                <a href="{{ path('event_calendar_export_event', {'id': event.id}) }}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md flex items-center transition">
+                                    <i class="fas fa-download mr-2"></i><span class="hidden md:inline">Export</span>
+                                </a>
+                                
+                                <a href="{{ path('event_calendar_add_to_google', {'id': event.id}) }}" target="_blank" rel="noopener" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md flex items-center transition">
+                                    <i class="fab fa-google mr-2"></i><span class="hidden md:inline">Add to Google</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="p-12 text-center">
+                <i class="fas fa-calendar-times text-gray-300 text-6xl mb-4"></i>
+                <h2 class="text-2xl font-semibold text-gray-700 mb-2">No Events Found</h2>
+                <p class="text-gray-600 mb-6">There are no events scheduled for {{ date|date('F d, Y') }}.</p>
+                <a href="{{ path('event_calendar_index', {'year': year, 'month': month}) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg inline-flex items-center transition">
+                    <i class="fas fa-calendar-alt mr-2"></i>Go Back to Calendar
+                </a>
+            </div>
+        </div>
+    {% endif %}
+    
+    <!-- Navigation to Adjacent Days -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Navigate to Adjacent Days</h2>
+            
+            <div class="flex flex-col sm:flex-row justify-between">
+                {% set prevDay = date|date_modify('-1 day') %}
+                <a href="{{ path('event_calendar_day', {'year': prevDay|date('Y'), 'month': prevDay|date('n'), 'day': prevDay|date('j')}) }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md mb-2 sm:mb-0 inline-flex items-center justify-center transition">
+                    <i class="fas fa-chevron-left mr-2"></i>{{ prevDay|date('F d, Y') }}
+                </a>
+                
+                {% set nextDay = date|date_modify('+1 day') %}
+                <a href="{{ path('event_calendar_day', {'year': nextDay|date('Y'), 'month': nextDay|date('n'), 'day': nextDay|date('j')}) }}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md inline-flex items-center justify-center transition">
+                    {{ nextDay|date('F d, Y') }}<i class="fas fa-chevron-right ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,7 +1,19 @@
+# These routes and controllers are loaded automatically by the DependencyInjection component
 controllers:
     resource: ../src/Controller/
     type: annotation
 
 kernel:
     resource: ../src/Kernel.php
+    type: annotation
+
+# Event Calendar routes
+event_calendar:
+    resource: ../src/EventCalendar/Controller/
+    type: annotation
+    prefix: /event-calendar
+
+# Email System routes  
+email_system:
+    resource: ../src/EmailSystem/Controller/
     type: annotation

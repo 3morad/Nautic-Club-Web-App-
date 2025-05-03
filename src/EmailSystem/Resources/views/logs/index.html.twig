@@ -1,0 +1,183 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email Logs{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">Email Logs</h1>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Total Emails</h5>
+                                    <h2 class="mb-0">{{ stats.total|default(0) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Last 24 Hours</h5>
+                                    <h2 class="mb-0">{{ stats.last24h|default(0) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Success Rate</h5>
+                                    <h2 class="mb-0">{{ stats.successRate|default(100) }}%</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Delivery Status</h5>
+                                    <div class="d-flex justify-content-around">
+                                        <div class="text-success">
+                                            <small>Sent</small>
+                                            <h4>{{ stats.sent|default(0) }}</h4>
+                                        </div>
+                                        <div class="text-danger">
+                                            <small>Failed</small>
+                                            <h4>{{ stats.failed|default(0) }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Recent Email Logs</h5>
+                    <div>
+                        <a href="{{ path('email_log_stats') }}" class="btn btn-sm btn-primary">View Statistics</a>
+                        <a href="{{ path('email_template_index') }}" class="btn btn-sm btn-outline-secondary ms-1">Manage Templates</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if logs is empty %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No email data available for this period.
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Recipient</th>
+                                        <th>Template</th>
+                                        <th>Subject</th>
+                                        <th>Sent At</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs %}
+                                    <tr>
+                                        <td>{{ log.id }}</td>
+                                        <td>
+                                            {% if log.user is defined and log.user %}
+                                                <a href="{{ path('email_log_user', {'id': log.user.id}) }}">
+                                                    {{ log.user.email }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Unknown</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if log.emailTemplate is defined and log.emailTemplate %}
+                                                <a href="{{ path('email_log_template', {'code': log.emailTemplate}) }}">
+                                                    {{ log.emailTemplate }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Unknown</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ log.subject|default('No Subject') }}</td>
+                                        <td>{{ log.sentAt ? log.sentAt|date('Y-m-d H:i') : 'Unknown' }}</td>
+                                        <td>
+                                            {% if log.status == 'sent' %}
+                                                <span class="badge bg-success">Sent</span>
+                                            {% elseif log.status == 'failed' %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ log.status|default('Unknown') }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#emailDetailsModal{{ log.id }}">
+                                                <i class="fas fa-eye"></i> Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">No email logs found</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                    
+                    {% if totalPages > 1 %}
+                    <nav aria-label="Email logs pagination">
+                        <ul class="pagination justify-content-center mt-4">
+                            {% for i in 1..totalPages %}
+                                <li class="page-item {{ i == page ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ path('email_log_index', {'page': i}) }}">{{ i }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for log in logs %}
+<!-- Email Details Modal -->
+<div class="modal fade" id="emailDetailsModal{{ log.id }}" tabindex="-1" aria-labelledby="emailDetailsModalLabel{{ log.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailDetailsModalLabel{{ log.id }}">Email Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Subject:</strong> {{ log.subject|default('No Subject') }}</p>
+                <p><strong>Recipient:</strong> {{ log.user is defined and log.user ? log.user.email : 'Unknown' }}</p>
+                <p><strong>Template:</strong> {{ log.emailTemplate|default('Unknown') }}</p>
+                <p><strong>Status:</strong> {{ log.status|default('Unknown') }}</p>
+                <p><strong>Sent at:</strong> {{ log.sentAt ? log.sentAt|date('Y-m-d H:i:s') : 'Unknown' }}</p>
+                {% if log.errorMessage is defined and log.errorMessage %}
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> {{ log.errorMessage }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %} 

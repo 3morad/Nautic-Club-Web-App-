@@ -1,0 +1,246 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Event Registration Dashboard{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+            <i class="fas fa-calendar-alt text-purple-600 mr-3"></i>Event Registration Dashboard
+        </h1>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <i class="fas fa-calendar-alt text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500 uppercase">Total Events</p>
+                        <p class="text-xl font-semibold text-gray-700">{{ events|length }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-ticket-alt text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500 uppercase">Total Registrations</p>
+                        <p class="text-xl font-semibold text-gray-700">{{ totalRegistrations }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-check-circle text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500 uppercase">Paid Registrations</p>
+                        <p class="text-xl font-semibold text-gray-700">{{ paidRegistrations }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-clock text-2xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm text-gray-500 uppercase">Pending Payments</p>
+                        <p class="text-xl font-semibold text-gray-700">{{ pendingRegistrations }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events Section -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div class="bg-gray-50 px-6 py-4 border-b">
+                <h2 class="text-xl font-semibold text-gray-800">Upcoming Events</h2>
+            </div>
+            <div class="p-6">
+                {% if upcomingEvents|length > 0 %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registrations</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for event in upcomingEvents %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                {% if event.imageFilename %}
+                                                    <div class="flex-shrink-0 h-10 w-10">
+                                                        <img class="h-10 w-10 rounded-full object-cover" src="{{ asset('uploads/events/' ~ event.imageFilename) }}" alt="{{ event.name }}">
+                                                    </div>
+                                                {% else %}
+                                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                        <i class="fas fa-calendar-day text-purple-600"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{{ event.eventDate|date('Y-m-d') }}</div>
+                                            <div class="text-sm text-gray-500">{{ event.eventDate|date('H:i') }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{{ event.locationWeather.name }}</div>
+                                            <div class="text-sm text-gray-500">{{ event.locationWeather.region }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            {% set registrationCount = event.registrations|length %}
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if registrationCount > 0 %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ registrationCount }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">
+                                                {% if event.capacity %}
+                                                    {{ event.capacity }}
+                                                    {% set percentage = event.registrations|length / event.capacity * 100 %}
+                                                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ percentage }}%"></div>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-xs text-gray-500">Unlimited</span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <a href="{{ path('event_registration_admin_event', {'id': event.id}) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                <i class="fas fa-users mr-1"></i>Registrations
+                                            </a>
+                                            <a href="{{ path('simple_event_show', {'id': event.id}) }}" class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-eye mr-1"></i>View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="text-gray-400 mb-2">
+                            <i class="fas fa-calendar-times text-5xl"></i>
+                        </div>
+                        <p class="text-gray-500">No upcoming events found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- All Events Section -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-800">All Events</h2>
+                <a href="{{ path('app_event_new') }}" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center">
+                    <i class="fas fa-plus mr-2"></i>Add New Event
+                </a>
+            </div>
+            <div class="p-6">
+                {% if events|length > 0 %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registrations</th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for event in events %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ event.id }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="text-sm font-medium text-gray-900">{{ event.name }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">{{ event.eventDate|date('Y-m-d H:i') }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            {% set now = "now"|date("U") %}
+                                            {% set eventDate = event.eventDate|date("U") %}
+                                            
+                                            {% if eventDate < now %}
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    Past
+                                                </span>
+                                            {% elseif event.isFull() %}
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                    Full
+                                                </span>
+                                            {% else %}
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Open
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-gray-900">
+                                                <span class="font-medium">{{ event.registrations|length }}</span>
+                                                {% if event.capacity %}
+                                                    <span class="text-gray-500">/ {{ event.capacity }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                {{ event.getPaidRegistrationsCount() }} paid
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <a href="{{ path('event_registration_admin_event', {'id': event.id}) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                <i class="fas fa-users mr-1"></i>Registrations
+                                            </a>
+                                            <a href="{{ path('app_event_edit', {'id': event.id}) }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
+                                                <i class="fas fa-edit mr-1"></i>Edit
+                                            </a>
+                                            <a href="{{ path('simple_event_show', {'id': event.id}) }}" class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-eye mr-1"></i>View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <div class="text-gray-400 mb-2">
+                            <i class="fas fa-calendar-times text-5xl"></i>
+                        </div>
+                        <p class="text-gray-500">No events found.</p>
+                        <a href="{{ path('app_event_new') }}" class="mt-4 inline-block px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-plus mr-2"></i>Add New Event
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %} 

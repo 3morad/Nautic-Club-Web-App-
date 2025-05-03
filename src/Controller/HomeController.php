@@ -7,6 +7,7 @@ use App\Repository\LocationWeatherRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class HomeController extends AbstractController
 {
@@ -27,11 +28,29 @@ class HomeController extends AbstractController
         ]);
     }
     
+    #[Route('/user-dashboard', name: 'user_dashboard')]
+    #[IsGranted('ROLE_USER')]
+    public function userDashboard(EventRepository $eventRepository): Response
+    {
+        // Get upcoming events for the user
+        $upcomingEvents = $eventRepository->createQueryBuilder('e')
+            ->where('e.eventDate >= :now')
+            ->setParameter('now', new \DateTime())
+            ->orderBy('e.eventDate', 'ASC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+            
+        return $this->render('dashboard/user.html.twig', [
+            'upcoming_events' => $upcomingEvents,
+            'user' => $this->getUser(),
+        ]);
+    }
+    
     #[Route('/admin-dashboard', name: 'admin_dashboard')]
+    #[IsGranted('ROLE_ADMIN')]
     public function adminDashboard(EventRepository $eventRepository, LocationWeatherRepository $locationRepository): Response
     {
-        // You can add admin authorization check here
-        
         // Get upcoming events
         $upcomingEvents = $eventRepository->createQueryBuilder('e')
             ->where('e.eventDate >= :now')
@@ -71,35 +90,36 @@ class HomeController extends AbstractController
             $mostCommonCondition = ucfirst($mostCommonCondition);
         }
         
-        // Mock data for charts
-        $revenueLabelData = $this->getMockRevenueData();
-        $ticketLabelData = $this->getMockTicketData();
-        
-        // Mock data for stats cards
-        $totalTickets = 235;
-        $totalRevenue = 12450.75;
-        $activeUsers = 87;
-        $averageRating = 4.6;
-        
-        // Mock data for recent transactions
-        $recentTransactions = $this->getMockTransactions();
-        
         return $this->render('admin/dashboard.html.twig', [
             'upcoming_events' => $upcomingEvents,
             'locations' => $locations,
             'locations_count' => $locationsCount,
             'avg_temperature' => $avgTemperature,
             'most_common_condition' => $mostCommonCondition,
-            'revenue_labels' => $revenueLabelData['labels'],
-            'revenue_data' => $revenueLabelData['data'],
-            'ticket_labels' => $ticketLabelData['labels'],
-            'ticket_data' => $ticketLabelData['data'],
-            'total_tickets' => $totalTickets,
-            'total_revenue' => $totalRevenue,
-            'active_users' => $activeUsers,
-            'average_rating' => $averageRating,
-            'recent_transactions' => $recentTransactions
+            'revenue_labels' => $this->getMockRevenueData()['labels'],
+            'revenue_data' => $this->getMockRevenueData()['data'],
+            'ticket_labels' => $this->getMockTicketData()['labels'],
+            'ticket_data' => $this->getMockTicketData()['data'],
+            'total_tickets' => 235,
+            'total_revenue' => 12450.75,
+            'active_users' => 87,
+            'average_rating' => 4.6,
+            'recent_transactions' => $this->getMockTransactions()
         ]);
+    }
+    
+    #[Route('/tickets', name: 'ticket_index')]
+    #[IsGranted('ROLE_USER')]
+    public function tickets(): Response
+    {
+        return $this->render('ticket/index.html.twig');
+    }
+    
+    #[Route('/feedback', name: 'app_feedback_index')]
+    #[IsGranted('ROLE_USER')]
+    public function feedback(): Response
+    {
+        return $this->render('feedback/index.html.twig');
     }
     
     private function getMockRevenueData(): array
@@ -139,23 +159,5 @@ class HomeController extends AbstractController
         }
         
         return $transactions;
-    }
-    
-    #[Route('/payment', name: 'payment_page')]
-    public function payment(): Response
-    {
-        return $this->render('payment/index.html.twig');
-    }
-    
-    #[Route('/tickets', name: 'ticket_index')]
-    public function tickets(): Response
-    {
-        return $this->render('ticket/index.html.twig');
-    }
-    
-    #[Route('/feedback', name: 'app_feedback_index')]
-    public function feedback(): Response
-    {
-        return $this->render('feedback/index.html.twig');
     }
 } 

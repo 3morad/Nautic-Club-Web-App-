@@ -11,6 +11,7 @@
         {% endblock %}
 
         {% block javascripts %}
+            <script defer src="https://unpkg.com/alpinejs@3.10.5/dist/cdn.min.js"></script>
             <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
         {% endblock %}
@@ -28,6 +29,37 @@
                     <a href="{{ path('admin_dashboard') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
                         <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                     </a>
+                    <a href="{{ path('admin_user_index') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                        <i class="fas fa-users mr-2"></i>Users
+                    </a>
+                    <a href="{{ path('admin_event_registration_dashboard') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                        <i class="fas fa-database mr-2"></i>Event Database
+                    </a>
+                    
+                    <!-- Email System Dropdown -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                            <div>
+                                <i class="fas fa-envelope mr-2"></i>Email System
+                            </div>
+                            <i class="fas fa-chevron-down text-xs transform transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                        </button>
+                        <div x-show="open" @click.away="open = false" class="bg-gray-700 mt-1 rounded py-2 w-full">
+                            <a href="{{ path('email_dashboard') }}" class="block py-2 px-6 rounded transition duration-200 hover:bg-gray-600 hover:text-white">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                            <a href="{{ path('email_template_index') }}" class="block py-2 px-6 rounded transition duration-200 hover:bg-gray-600 hover:text-white">
+                                <i class="fas fa-envelope-open-text mr-2"></i>Templates
+                            </a>
+                            <a href="{{ path('email_bulk_send') }}" class="block py-2 px-6 rounded transition duration-200 hover:bg-gray-600 hover:text-white">
+                                <i class="fas fa-paper-plane mr-2"></i>Bulk Send
+                            </a>
+                            <a href="{{ path('email_log_index') }}" class="block py-2 px-6 rounded transition duration-200 hover:bg-gray-600 hover:text-white">
+                                <i class="fas fa-history mr-2"></i>Logs
+                            </a>
+                        </div>
+                    </div>
+                    
                     <a href="{{ path('admin_transactions_index') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
                         <i class="fas fa-money-bill-wave mr-2"></i>Transactions
                     </a>
@@ -39,6 +71,9 @@
                     </a>
                     <a href="{{ path('app_event_index') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
                         <i class="fas fa-calendar-alt mr-2"></i>Events
+                    </a>
+                    <a href="{{ path('event_registration_admin_all') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
+                        <i class="fas fa-clipboard-list mr-2"></i>Event Registrations
                     </a>
                     <a href="{{ path('admin_feedback_index') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-700 hover:text-white">
                         <i class="fas fa-comments mr-2"></i>Feedback

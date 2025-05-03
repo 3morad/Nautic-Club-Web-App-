@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/simple-event')]
 class SimpleEventController extends AbstractController
@@ -25,6 +26,7 @@ class SimpleEventController extends AbstractController
     }
     
     #[Route('/new', name: 'simple_event_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $successMessage = null;
@@ -95,6 +97,7 @@ class SimpleEventController extends AbstractController
     }
     
     #[Route('/{id}/edit', name: 'simple_event_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function edit(int $id, Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $event = $entityManager->getRepository(Event::class)->find($id);
@@ -163,7 +166,8 @@ class SimpleEventController extends AbstractController
         ]);
     }
     
-    #[Route('/{id}/delete', name: 'simple_event_delete', methods: ['POST'])]
+    #[Route('/{id}', name: 'simple_event_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(int $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $event = $entityManager->getRepository(Event::class)->find($id);

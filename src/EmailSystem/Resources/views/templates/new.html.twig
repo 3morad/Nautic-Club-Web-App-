@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Email Template{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h1 class="h3 mb-0">New Email Template</h1>
+                    <a href="{{ path('email_template_index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ label }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    
+                    <form method="post" action="{{ path('email_template_new') }}">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="code" class="form-label">Template Code <span class="text-danger">*</span></label>
+                                <input type="text" id="code" name="code" class="form-control" required 
+                                       pattern="[a-z0-9_]+" title="Only lowercase letters, numbers, and underscores">
+                                <small class="form-text text-muted">
+                                    Unique identifier for this template. Use only lowercase letters, numbers and underscores.
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select id="category" name="category" class="form-select" required>
+                                    <option value="general">General</option>
+                                    <option value="notification">Notification</option>
+                                    <option value="marketing">Marketing</option>
+                                    <option value="event">Event</option>
+                                    <option value="system">System</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Template Name <span class="text-danger">*</span></label>
+                            <input type="text" id="name" name="name" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Email Subject <span class="text-danger">*</span></label>
+                            <input type="text" id="subject" name="subject" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="view_name" class="form-label">View Template Name <span class="text-danger">*</span></label>
+                            <input type="text" id="view_name" name="view_name" class="form-control" required>
+                            <small class="form-text text-muted">
+                                Name of the template file without extension (e.g. "welcome" for "welcome.html.twig")
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h5 class="alert-heading">Available Variables</h5>
+                            <p class="mb-0">In your template, you can use the following variables:</p>
+                            <ul class="mb-0">
+                                <li><code>recipient</code> - The User object with properties like firstName, lastName, email</li>
+                                <li><code>app_name</code> - The application name</li>
+                                <li><code>current_year</code> - The current year</li>
+                                <li>Additional context variables passed when sending the email</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Create Template
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

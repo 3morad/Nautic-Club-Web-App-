@@ -16,17 +16,69 @@
         {% endblock %}
     </head>
     <body class="bg-gray-50 min-h-screen flex flex-col">
-        <nav class="bg-white shadow-sm">
+        <header class="bg-white shadow-sm">
             <div class="container mx-auto px-4">
                 <div class="flex justify-between items-center py-4">
                     <a href="{{ path('home') }}" class="text-xl font-bold text-purple-600">Nautic Club</a>
-                    <div class="hidden md:flex space-x-6">
-                        <a href="{{ path('payment_page') }}" class="text-gray-600 hover:text-purple-600">Book Tickets</a>
-                        <a href="{{ path('ticket_index') }}" class="text-gray-600 hover:text-purple-600">My Tickets</a>
-                        <a href="{{ path('app_feedback_index') }}" class="text-gray-600 hover:text-purple-600">Feedback</a>
-                        <a href="{{ path('app_event_index') }}" class="text-gray-600 hover:text-purple-600">Events</a>
-                        <a href="{{ path('simple_location_index') }}" class="text-gray-600 hover:text-purple-600">Locations</a>
-                        <a href="{{ path('admin_dashboard') }}" class="text-gray-600 hover:text-purple-600">Admin</a>
+                    <div class="hidden md:flex items-center space-x-8">
+                        <div class="flex space-x-6">
+                            <a href="{{ path('home') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                <i class="fas fa-home mr-2"></i> Home
+                            </a>
+                            {% if is_granted('ROLE_USER') %}
+                                <a href="{{ path('user_dashboard') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                                </a>
+                                <a href="{{ path('simple_event_index') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2"></i> Events
+                                </a>
+                                <a href="{{ path('event_calendar_index') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-calendar-week mr-2"></i> Calendar
+                                </a>
+                                <a href="{{ path('event_registration_my_registrations') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-ticket-alt mr-2"></i> My Registrations
+                                </a>
+                                <a href="{{ path('app_feedback_index') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-comment-alt mr-2"></i> Feedback
+                                </a>
+                                <a href="{{ path('simple_location_index') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2"></i> Locations
+                                </a>
+                            {% endif %}
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('admin_dashboard') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-user-shield mr-2"></i> Admin
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center pl-6 border-l border-gray-200">
+                            {% if app.user %}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" class="flex items-center text-gray-700 hover:text-purple-600 focus:outline-none">
+                                        <span class="mr-2">{{ app.user.firstName }}</span>
+                                        <i class="fas fa-user-circle text-xl"></i>
+                                        <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                                    </button>
+                                    <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20">
+                                        {% if is_granted('ROLE_USER') %}
+                                            <a href="{{ path('user_dashboard') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-500 hover:text-white">
+                                                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                                            </a>
+                                            <a href="{{ path('event_registration_my_registrations') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-500 hover:text-white">
+                                                <i class="fas fa-ticket-alt mr-2"></i> My Registrations
+                                            </a>
+                                        {% endif %}
+                                        <a href="{{ path('app_logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-500 hover:text-white">
+                                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                        </a>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="text-gray-600 hover:text-purple-600 flex items-center">
+                                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
                     <button class="md:hidden text-gray-600" id="mobile-menu-button">
                         <i class="fas fa-bars text-xl"></i>
@@ -35,16 +87,88 @@
                 <!-- Mobile menu -->
                 <div class="md:hidden hidden" id="mobile-menu">
                     <div class="py-2 space-y-2">
-                        <a href="{{ path('payment_page') }}" class="block py-2 text-gray-600 hover:text-purple-600">Book Tickets</a>
-                        <a href="{{ path('ticket_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">My Tickets</a>
-                        <a href="{{ path('app_feedback_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">Feedback</a>
-                        <a href="{{ path('app_event_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">Events</a>
-                        <a href="{{ path('simple_location_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">Locations</a>
-                        <a href="{{ path('admin_dashboard') }}" class="block py-2 text-gray-600 hover:text-purple-600">Admin</a>
+                        <a href="{{ path('home') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                            <i class="fas fa-home mr-2"></i> Home
+                        </a>
+                        {% if is_granted('ROLE_USER') %}
+                            <a href="{{ path('user_dashboard') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                            </a>
+                            <a href="{{ path('simple_event_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-calendar-alt mr-2"></i> Events
+                            </a>
+                            <a href="{{ path('event_calendar_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-calendar-week mr-2"></i> Calendar
+                            </a>
+                            <a href="{{ path('event_registration_my_registrations') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-ticket-alt mr-2"></i> My Registrations
+                            </a>
+                            <a href="{{ path('app_feedback_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-comment-alt mr-2"></i> Feedback
+                            </a>
+                            <a href="{{ path('simple_location_index') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-map-marker-alt mr-2"></i> Locations
+                            </a>
+                        {% endif %}
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <a href="{{ path('admin_dashboard') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-user-shield mr-2"></i> Admin
+                            </a>
+                        {% endif %}
+                        {% if app.user %}
+                            <a href="{{ path('app_logout') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="block py-2 text-gray-600 hover:text-purple-600">
+                                <i class="fas fa-sign-in-alt mr-2"></i> Login
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </nav>
+        </header>
+
+        <!-- Current page indicator bar -->
+        {% set current_route = app.request.attributes.get('_route') %}
+        <div class="bg-gray-100 border-b">
+            <div class="container mx-auto px-4 py-2">
+                <div class="text-sm text-gray-600">
+                    {% if current_route starts with 'home' %}
+                        <span class="font-medium"><i class="fas fa-home mr-1"></i> Home</span>
+                    {% elseif current_route starts with 'user_dashboard' %}
+                        <span class="font-medium"><i class="fas fa-tachometer-alt mr-1"></i> User Dashboard</span>
+                    {% elseif current_route starts with 'simple_event' %}
+                        <a href="{{ path('simple_event_index') }}" class="hover:text-purple-600"><i class="fas fa-calendar-alt mr-1"></i> Events</a>
+                        {% if current_route == 'simple_event_show' %}
+                            <span class="mx-2">/</span>
+                            <span class="font-medium">Event Details</span>
+                        {% endif %}
+                    {% elseif current_route starts with 'event_calendar' %}
+                        <a href="{{ path('event_calendar_index') }}" class="hover:text-purple-600"><i class="fas fa-calendar-week mr-1"></i> Event Calendar</a>
+                        {% if current_route == 'event_calendar_day' %}
+                            <span class="mx-2">/</span>
+                            <span class="font-medium">Day View</span>
+                        {% endif %}
+                    {% elseif current_route starts with 'event_registration' %}
+                        <a href="{{ path('event_registration_my_registrations') }}" class="hover:text-purple-600"><i class="fas fa-ticket-alt mr-1"></i> My Registrations</a>
+                        {% if current_route == 'event_registration_form' %}
+                            <span class="mx-2">/</span>
+                            <span class="font-medium">Register for Event</span>
+                        {% elseif current_route == 'event_registration_payment' %}
+                            <span class="mx-2">/</span>
+                            <span class="font-medium">Payment</span>
+                        {% endif %}
+                    {% elseif current_route starts with 'app_feedback' %}
+                        <span class="font-medium"><i class="fas fa-comment-alt mr-1"></i> Feedback</span>
+                    {% elseif current_route starts with 'simple_location' %}
+                        <span class="font-medium"><i class="fas fa-map-marker-alt mr-1"></i> Locations</span>
+                    {% elseif current_route starts with 'admin' %}
+                        <span class="font-medium"><i class="fas fa-user-shield mr-1"></i> Admin Dashboard</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
         <main class="flex-grow">
             {% block body %}{% endblock %}
@@ -60,11 +184,18 @@
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Links</h3>
                         <ul class="space-y-2">
-                            <li><a href="{{ path('payment_page') }}" class="text-gray-600 hover:text-purple-600">Book Tickets</a></li>
-                            <li><a href="{{ path('ticket_index') }}" class="text-gray-600 hover:text-purple-600">My Tickets</a></li>
-                            <li><a href="{{ path('app_feedback_index') }}" class="text-gray-600 hover:text-purple-600">Feedback</a></li>
-                            <li><a href="{{ path('app_event_index') }}" class="text-gray-600 hover:text-purple-600">Events</a></li>
-                            <li><a href="{{ path('simple_location_index') }}" class="text-gray-600 hover:text-purple-600">Locations</a></li>
+                            <li><a href="{{ path('home') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-home mr-2"></i> Home</a></li>
+                            {% if is_granted('ROLE_USER') %}
+                                <li><a href="{{ path('user_dashboard') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a></li>
+                                <li><a href="{{ path('simple_event_index') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-calendar-alt mr-2"></i> Events</a></li>
+                                <li><a href="{{ path('event_calendar_index') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-calendar-week mr-2"></i> Calendar</a></li>
+                                <li><a href="{{ path('event_registration_my_registrations') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-ticket-alt mr-2"></i> My Registrations</a></li>
+                                <li><a href="{{ path('app_feedback_index') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-comment-alt mr-2"></i> Feedback</a></li>
+                                <li><a href="{{ path('simple_location_index') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-map-marker-alt mr-2"></i> Locations</a></li>
+                            {% endif %}
+                            {% if not app.user %}
+                                <li><a href="{{ path('app_login') }}" class="text-gray-600 hover:text-purple-600"><i class="fas fa-sign-in-alt mr-2"></i> Login</a></li>
+                            {% endif %}
                         </ul>
                     </div>
                     <div>

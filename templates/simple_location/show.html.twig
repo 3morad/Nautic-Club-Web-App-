@@ -36,6 +36,7 @@
         <h1 class="text-3xl font-bold text-purple-600 flex items-center mb-4 md:mb-0">
             <i class="fas fa-map-marked-alt mr-3"></i>{{ location.name }}
         </h1>
+        {% if is_granted('ROLE_ADMIN') %}
         <div class="flex space-x-3">
             <a href="{{ path('simple_location_new') }}?edit={{ location.id }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
                 <i class="fas fa-edit mr-2"></i>Edit Location
@@ -47,6 +48,7 @@
                 </button>
             </form>
         </div>
+        {% endif %}
     </div>
 
     <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">

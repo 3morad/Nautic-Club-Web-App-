@@ -1,0 +1,254 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <h1 class="text-3xl font-bold text-purple-600 mb-4">Welcome, {{ app.user.firstName }}!</h1>
+        <p class="text-gray-600">Manage your event registrations, view upcoming events, and more.</p>
+    </div>
+
+    <!-- User Profile Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Profile</h2>
+            <div class="space-y-3">
+                <div class="flex items-center">
+                    <i class="fas fa-user text-purple-500 w-8"></i>
+                    <span class="text-gray-700">{{ app.user.fullName }}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-envelope text-purple-500 w-8"></i>
+                    <span class="text-gray-700">{{ app.user.email }}</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-ticket-alt text-purple-500 w-8"></i>
+                    <span class="text-gray-700">{{ app.user.eventRegistrations|length }} Events Registered</span>
+                </div>
+            </div>
+            <div class="mt-6">
+                <a href="{{ path('event_registration_my_registrations') }}" class="inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md transition">
+                    <i class="fas fa-list-alt mr-2"></i>View My Registrations
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 md:col-span-2">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <a href="{{ path('simple_event_index') }}" class="bg-blue-100 hover:bg-blue-200 p-4 rounded-lg flex items-center transition">
+                    <div class="bg-blue-500 text-white p-3 rounded-full mr-4">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-blue-800">Browse Events</h3>
+                        <p class="text-sm text-blue-600">Discover and register for upcoming events</p>
+                    </div>
+                </a>
+
+                <a href="{{ path('simple_event_index') }}" class="bg-green-100 hover:bg-green-200 p-4 rounded-lg flex items-center transition">
+                    <div class="bg-green-500 text-white p-3 rounded-full mr-4">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-green-800">Book Tickets</h3>
+                        <p class="text-sm text-green-600">Reserve your spot at our events</p>
+                    </div>
+                </a>
+
+                <a href="{{ path('event_registration_my_registrations') }}" class="bg-purple-100 hover:bg-purple-200 p-4 rounded-lg flex items-center transition">
+                    <div class="bg-purple-500 text-white p-3 rounded-full mr-4">
+                        <i class="fas fa-list-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-purple-800">My Registrations</h3>
+                        <p class="text-sm text-purple-600">Manage your registered events</p>
+                    </div>
+                </a>
+
+                <a href="{{ path('app_feedback_index') }}" class="bg-yellow-100 hover:bg-yellow-200 p-4 rounded-lg flex items-center transition">
+                    <div class="bg-yellow-500 text-white p-3 rounded-full mr-4">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-medium text-yellow-800">Submit Feedback</h3>
+                        <p class="text-sm text-yellow-600">Share your thoughts on our events</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Events -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Upcoming Events</h2>
+            <a href="{{ path('simple_event_index') }}" class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center">
+                View All Events <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+        {% if upcoming_events|length > 0 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for event in upcoming_events %}
+                    <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition">
+                        {% if event.imageFilename %}
+                            <div class="h-40 bg-gray-200 overflow-hidden">
+                                <img src="{{ asset('uploads/events/' ~ event.imageFilename) }}" 
+                                     class="w-full h-full object-cover" alt="{{ event.name }}">
+                            </div>
+                        {% else %}
+                            <div class="h-40 bg-gray-200 flex items-center justify-center">
+                                <i class="fas fa-image text-4xl text-gray-400"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ event.name }}</h3>
+                            
+                            <div class="text-sm text-gray-600 mb-4 space-y-2">
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-day text-purple-500 mr-2 w-5 text-center"></i>
+                                    <span>{{ event.eventDate|date('M d, Y') }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-purple-500 mr-2 w-5 text-center"></i>
+                                    <span>{{ event.eventDate|date('g:i A') }}</span>
+                                </div>
+                                {% if event.locationWeather %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt text-purple-500 mr-2 w-5 text-center"></i>
+                                    <span>{{ event.locationWeather.name }}</span>
+                                </div>
+                                {% endif %}
+                                {% if event.price > 0 %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-tag text-purple-500 mr-2 w-5 text-center"></i>
+                                    <span class="font-medium">€{{ event.price|number_format(2, '.', ',') }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            {% set isRegistered = false %}
+                            {% for registration in app.user.eventRegistrations %}
+                                {% if registration.event.id == event.id and registration.paymentStatus != 'cancelled' %}
+                                    {% set isRegistered = true %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <div>
+                                {% if isRegistered %}
+                                    <span class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                        <i class="fas fa-check-circle mr-1"></i> Registered
+                                    </span>
+                                {% elseif event.isFull() %}
+                                    <span class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                                        <i class="fas fa-times-circle mr-1"></i> Sold Out
+                                    </span>
+                                {% else %}
+                                    <div class="flex space-x-2">
+                                        <a href="{{ path('simple_event_show', {'id': event.id}) }}" 
+                                           class="px-3 py-2 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition flex-1 text-center">
+                                            <i class="fas fa-eye mr-1"></i> Details
+                                        </a>
+                                        <a href="{{ path('event_registration_form', {'id': event.id}) }}" class="w-full px-3 py-2 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition flex-1 text-center">
+                                            <i class="fas fa-ticket-alt mr-1"></i> Register
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-blue-50 text-blue-700 p-8 rounded-lg text-center">
+                <i class="fas fa-calendar-times text-5xl mb-4"></i>
+                <p class="text-lg">No upcoming events found. Check back soon for new events!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Your Recent Registrations -->
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold text-gray-800">Your Recent Registrations</h2>
+            <a href="{{ path('event_registration_my_registrations') }}" class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center">
+                View All Registrations <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+        {% set hasRegistrations = false %}
+        {% for registration in app.user.eventRegistrations|slice(0, 3) %}
+            {% if registration.paymentStatus != 'cancelled' %}
+                {% set hasRegistrations = true %}
+            {% endif %}
+        {% endfor %}
+
+        {% if hasRegistrations %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% set count = 0 %}
+                        {% for registration in app.user.eventRegistrations %}
+                            {% if registration.paymentStatus != 'cancelled' and count < 3 %}
+                                {% set count = count + 1 %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">{{ registration.event.name }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-500">{{ registration.event.eventDate|date('M d, Y') }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if registration.paymentStatus == 'pending' %}
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                Pending Payment
+                                            </span>
+                                        {% elseif registration.paymentStatus == 'paid' %}
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                Confirmed
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                {{ registration.paymentStatus|capitalize }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        {% if registration.paymentStatus == 'pending' %}
+                                            <a href="{{ path('event_registration_payment', {'id': registration.id}) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">
+                                                Pay Now
+                                            </a>
+                                        {% endif %}
+                                        <a href="{{ path('simple_event_show', {'id': registration.event.id}) }}" class="text-blue-600 hover:text-blue-900">
+                                            View Event
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="bg-gray-50 text-gray-700 p-8 rounded-lg text-center">
+                <i class="fas fa-ticket-alt text-5xl mb-4 text-gray-400"></i>
+                <p class="text-lg">You haven't registered for any events yet.</p>
+                <a href="{{ path('simple_event_index') }}" class="mt-4 inline-block bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition">
+                    Browse Available Events
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

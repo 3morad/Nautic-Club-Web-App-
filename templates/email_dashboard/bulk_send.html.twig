@@ -1,0 +1,2006 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Bulk Email Sender{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .email-preview {
+            border: 1px solid #e0e0e0;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-top: 15px;
+            background: #f8f9fc;
+        }
+        .template-select {
+            margin-bottom: 20px;
+        }
+        .template-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.15rem 1rem 0 rgba(58, 59, 69, 0.15);
+            overflow: hidden;
+        }
+        .template-card.selected {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .template-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 0.75rem;
+        }
+        .card-header {
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        .card-footer {
+            border-bottom-left-radius: 0.75rem !important;
+            border-bottom-right-radius: 0.75rem !important;
+            background-color: #f8f9fc;
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        /* New step navigation styling */
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .step {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            padding: 0.5rem 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-number {
+            width: 2.5rem;
+            height: 2.5rem;
+            background-color: #f8f9fc;
+            border: 2px solid #e3e6f0;
+            color: #858796;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-number {
+            background-color: #4e73df;
+            border-color: #4e73df;
+            color: white;
+            box-shadow: 0 0 0 5px rgba(78, 115, 223, 0.2);
+        }
+        
+        .step.completed .step-number {
+            background-color: #1cc88a;
+            border-color: #1cc88a;
+            color: white;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            margin: 0 0 0.25rem;
+            font-weight: 600;
+            color: #5a5c69;
+            transition: all 0.3s;
+        }
+        
+        .step.active .step-title {
+            color: #4e73df;
+        }
+        
+        .step-description {
+            font-size: 0.875rem;
+            color: #858796;
+            margin: 0;
+        }
+        
+        .step-connector {
+            position: absolute;
+            top: 1.75rem;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background-color: #e3e6f0;
+            z-index: 1;
+        }
+        
+        .step:last-child .step-connector {
+            display: none;
+        }
+        
+        .step.completed .step-connector {
+            background-color: #1cc88a;
+        }
+        
+        .step.active .step-connector {
+            background: linear-gradient(to right, #4e73df 0%, #e3e6f0 100%);
+        }
+        
+        .step-indicator {
+            display: flex;
+            margin-bottom: 1.5rem;
+        }
+        .step-indicator .step {
+            flex: 1;
+            position: relative;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background: #f8f9fc;
+            border-radius: 0.5rem;
+            margin-right: 1rem;
+            font-weight: 500;
+            color: #4e73df;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .step-indicator .step:last-child {
+            margin-right: 0;
+        }
+        .step-indicator .step::before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0.75rem;
+            top: 0.65rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: #4e73df;
+            color: white;
+            text-align: center;
+            line-height: 1.5rem;
+            border-radius: 50%;
+        }
+        .heading-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        .heading-section h1 {
+            margin: 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .heading-section .badge {
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            background: rgba(78, 115, 223, 0.1);
+            color: #4e73df;
+            font-weight: 500;
+        }
+        .recipient-count {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #4e73df;
+        }
+        .recipient-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .preview-section {
+            background: linear-gradient(135deg, #f8f9fc 0%, #f1f3f9 100%);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+        }
+        .form-check-input:checked {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        /* Add these styles for the template gallery */
+        .template-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+        
+        .template-item {
+            position: relative;
+        }
+        
+        .template-card {
+            cursor: pointer;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 2px solid transparent;
+            background-color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .template-card.selected {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 5px rgba(78, 115, 223, 0.15);
+        }
+        
+        .template-header {
+            padding: 1rem;
+            background: linear-gradient(to right, #f8f9fc, #ffffff);
+            border-bottom: 1px solid #e3e6f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .category-events {
+            background-color: rgba(28, 200, 138, 0.1);
+            color: #1cc88a;
+            border: 1px solid rgba(28, 200, 138, 0.2);
+        }
+        
+        .category-notifications {
+            background-color: rgba(54, 185, 204, 0.1);
+            color: #36b9cc;
+            border: 1px solid rgba(54, 185, 204, 0.2);
+        }
+        
+        .category-marketing {
+            background-color: rgba(246, 194, 62, 0.1);
+            color: #f6c23e;
+            border: 1px solid rgba(246, 194, 62, 0.2);
+        }
+        
+        .category-system {
+            background-color: rgba(78, 115, 223, 0.1);
+            color: #4e73df;
+            border: 1px solid rgba(78, 115, 223, 0.2);
+        }
+        
+        .selection-indicator {
+            position: relative;
+        }
+        
+        .select-checkbox {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            border: 2px solid #e3e6f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: white;
+        }
+        
+        .select-checkbox i {
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s;
+            color: white;
+        }
+        
+        .template-radio:checked + .select-checkbox {
+            background-color: #4e73df;
+            border-color: #4e73df;
+        }
+        
+        .template-radio:checked + .select-checkbox i {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .template-body {
+            padding: 1.25rem;
+            flex: 1;
+        }
+        
+        .template-name {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #4e73df;
+        }
+        
+        .template-details {
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .template-code {
+            margin-bottom: 0.5rem;
+        }
+        
+        .template-code code {
+            background-color: #f8f9fc;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            color: #5a5c69;
+            border: 1px solid #e3e6f0;
+        }
+        
+        .template-subject {
+            color: #5a5c69;
+            font-weight: 500;
+        }
+        
+        .template-description {
+            color: #858796;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+        
+        .template-actions {
+            padding: 1rem;
+            background-color: #f8f9fc;
+            border-top: 1px solid #e3e6f0;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-button {
+            border: none;
+            background: transparent;
+            color: #5a5c69;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.35rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .action-button:hover {
+            background-color: #eaecf4;
+        }
+        
+        .action-button.preview {
+            color: #1cc88a;
+        }
+        
+        .action-button.preview:hover {
+            background-color: rgba(28, 200, 138, 0.1);
+        }
+        
+        .action-button.select {
+            color: #4e73df;
+        }
+        
+        .action-button.select:hover {
+            background-color: rgba(78, 115, 223, 0.1);
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: #4e73df;
+            font-weight: 700;
+        }
+        
+        .section-number {
+            width: 2rem;
+            height: 2rem;
+            background-color: #4e73df;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            margin-right: 0.75rem;
+        }
+        
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Add these styles for the new recipient options */
+        .recipient-tabs {
+            margin-bottom: -1px;
+        }
+        
+        .nav-tabs .nav-link {
+            padding: 0.75rem 1.25rem;
+            color: #5a5c69;
+            border-radius: 0.5rem 0.5rem 0 0;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            background-color: #f8f9fc;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: #4e73df;
+            background-color: #fff;
+            border-color: #e3e6f0 #e3e6f0 #fff;
+            font-weight: 600;
+        }
+        
+        .group-card {
+            border: 1px solid #e3e6f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .group-card:hover {
+            border-color: #4e73df;
+            background-color: #f8f9fc;
+        }
+        
+        .user-group-label {
+            display: block;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .group-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+        
+        .group-name {
+            font-weight: 600;
+            color: #4e73df;
+        }
+        
+        .group-description {
+            font-size: 0.85rem;
+            color: #858796;
+        }
+        
+        .user-selection-container {
+            background-color: #fff;
+        }
+        
+        .user-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e3e6f0;
+            transition: background-color 0.2s;
+        }
+        
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        
+        .user-item:hover {
+            background-color: #f8f9fc;
+        }
+        
+        .user-label {
+            display: block;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #5a5c69;
+        }
+        
+        .user-email {
+            font-size: 0.85rem;
+            color: #858796;
+        }
+        
+        .email-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .email-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.75rem;
+            background: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            border-radius: 50px;
+            font-size: 0.85rem;
+        }
+        
+        .email-chip.invalid {
+            background-color: rgba(231, 74, 59, 0.1);
+            border-color: rgba(231, 74, 59, 0.3);
+        }
+        
+        .email-chip .remove-chip {
+            margin-left: 0.5rem;
+            cursor: pointer;
+            color: #858796;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .email-chip .remove-chip:hover {
+            background-color: #e3e6f0;
+            color: #5a5c69;
+        }
+        
+        .schedule-container {
+            background-color: #f8f9fc;
+            transition: all 0.3s;
+        }
+        
+        .selected-count {
+            font-size: 0.9rem;
+            color: #858796;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4">
+    <div class="heading-section my-4">
+        <h1 class="display-5">Email System</h1>
+        <span class="badge">Bulk Sender</span>
+        <div class="ms-auto">
+            <a href="{{ path('email_dashboard') }}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <!-- Email System Navigation Tabs -->
+    <ul class="nav nav-tabs nav-fill mb-4">
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('email_dashboard') }}">
+                <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active fw-bold" href="{{ path('email_bulk_send') }}">
+                <i class="fas fa-paper-plane me-1"></i> Bulk Sender
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('email_template_index') }}">
+                <i class="fas fa-file-code me-1"></i> Templates
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('email_log_index') }}">
+                <i class="fas fa-history me-1"></i> Email Logs
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('email_log_stats') }}">
+                <i class="fas fa-chart-bar me-1"></i> Statistics
+            </a>
+        </li>
+    </ul>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-paper-plane me-1"></i> Email Campaign
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="bulkEmailForm">
+                        <div class="step-navigation mb-4">
+                            <div class="step active" data-step="1">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h6 class="step-title">Select Template</h6>
+                                    <p class="step-description">Choose an email template to use</p>
+                                </div>
+                                <div class="step-connector"></div>
+                            </div>
+                            <div class="step" data-step="2">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h6 class="step-title">Choose Recipients</h6>
+                                    <p class="step-description">Select who will receive the email</p>
+                                </div>
+                                <div class="step-connector"></div>
+                            </div>
+                            <div class="step" data-step="3">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h6 class="step-title">Review & Send</h6>
+                                    <p class="step-description">Confirm and send your campaign</p>
+                                </div>
+                            </div>
+                        </div>
+                    
+                        <h5 class="section-title d-flex justify-content-between align-items-center">
+                            <span>
+                                <span class="section-number">1</span> Select Email Template
+                            </span>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTemplateModal">
+                                <i class="fas fa-plus me-1"></i> Create New Template
+                            </button>
+                        </h5>
+                        
+                        <div class="template-gallery mb-4">
+                            {% if templates|length > 0 %}
+                                <div class="row">
+                                    {% for template in templates %}
+                                        <div class="col-md-6 col-lg-4 mb-4">
+                                            <div class="template-item" data-template-code="{{ template.code }}">
+                                                <div class="template-card h-100 shadow-sm">
+                                                    <div class="template-header d-flex justify-content-between align-items-center p-3">
+                                                        <div class="category-badge category-{{ template.category }}">
+                                                            <i class="fas {% if template.category == 'events' %}fa-calendar{% elseif template.category == 'notifications' %}fa-bell{% elseif template.category == 'marketing' %}fa-bullhorn{% else %}fa-tag{% endif %} me-1"></i> 
+                                                            {{ template.category|capitalize }}
+                                                        </div>
+                                                        <div class="selection-indicator">
+                                                            <input type="radio" name="template" id="template{{ template.id }}" 
+                                                                value="{{ template.code }}" class="template-radio visually-hidden">
+                                                            <label class="select-checkbox" for="template{{ template.id }}">
+                                                                <i class="fas fa-check"></i>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="template-body p-3">
+                                                        <h6 class="template-name">{{ template.name }}</h6>
+                                                        <div class="template-details">
+                                                            <div class="template-code mb-2">
+                                                                <span class="badge bg-light text-dark border">
+                                                                    <i class="fas fa-code me-1"></i> <code>{{ template.code }}</code>
+                                                                </span>
+                                                            </div>
+                                                            <div class="template-subject">
+                                                                <i class="fas fa-envelope-open-text text-muted me-1"></i> 
+                                                                <strong>{{ template.subject }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <p class="template-description mt-3 text-muted">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            {{ template.description|default('No description available for this template.')|slice(0, 100) ~ (template.description|length > 100 ? '...' : '') }}
+                                                        </p>
+                                                        <div class="template-variables-info mt-2">
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-code-branch me-1"></i> Variables: <span class="text-primary">recipient, app_name, current_year</span>
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="template-actions d-flex border-top mt-auto">
+                                                        <button type="button" class="action-button preview flex-grow-1" title="Preview Template">
+                                                            <i class="fas fa-eye me-1"></i> Preview
+                                                        </button>
+                                                        <button type="button" class="action-button select flex-grow-1" title="Select Template">
+                                                            <i class="fas fa-check-circle me-1"></i> Select
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> No email templates found. <a href="{{ path('email_template_new') }}" class="alert-link">Create your first template</a>.
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h5 class="section-title">
+                            <span class="section-number">2</span> Select Recipients
+                        </h5>
+                        
+                        <div class="recipient-options mb-4">
+                            <div class="recipient-tabs">
+                                <ul class="nav nav-tabs" id="recipientTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="all-users-tab" data-bs-toggle="tab" data-bs-target="#all-users-content" type="button" role="tab">
+                                            <i class="fas fa-users me-2"></i> All Users
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="user-groups-tab" data-bs-toggle="tab" data-bs-target="#user-groups-content" type="button" role="tab">
+                                            <i class="fas fa-layer-group me-2"></i> User Groups
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="specific-users-tab" data-bs-toggle="tab" data-bs-target="#specific-users-content" type="button" role="tab">
+                                            <i class="fas fa-user-check me-2"></i> Specific Users
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="custom-emails-tab" data-bs-toggle="tab" data-bs-target="#custom-emails-content" type="button" role="tab">
+                                            <i class="fas fa-envelope me-2"></i> Custom Emails
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="tab-content p-4 border border-top-0 rounded-bottom" id="recipientTabsContent">
+                                <!-- All Users Option -->
+                                <div class="tab-pane fade show active" id="all-users-content" role="tabpanel">
+                                    <div class="form-check">
+                                        <input class="form-check-input recipient-type" type="radio" name="recipient_type" 
+                                            id="allUsers" value="all_users" checked>
+                                        <label class="form-check-label" for="allUsers">
+                                            <strong>Send to all registered users</strong>
+                                        </label>
+                                    </div>
+                                    <div class="mt-3 alert alert-info">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                <i class="fas fa-info-circle fa-2x"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-2">This will send the email to all <strong>{{ user_count|default('25+') }}</strong> registered users in the system.</p>
+                                                <p class="mb-0 small">Includes all active members, regardless of their role or status.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- User Groups Option -->
+                                <div class="tab-pane fade" id="user-groups-content" role="tabpanel">
+                                    <div class="form-check">
+                                        <input class="form-check-input recipient-type" type="radio" name="recipient_type" 
+                                            id="userGroups" value="user_groups">
+                                        <label class="form-check-label" for="userGroups">
+                                            <strong>Send to selected user groups</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="mt-3 user-groups-container" style="opacity: 0.7; pointer-events: none;">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <div class="group-card">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input user-group-check" type="checkbox" value="members" id="groupMembers" name="user_groups[]">
+                                                        <label class="form-check-label user-group-label" for="groupMembers">
+                                                            <div class="group-info">
+                                                                <span class="group-name">Members</span>
+                                                                <span class="group-count badge bg-primary">{{ member_count|default('18') }}</span>
+                                                            </div>
+                                                            <span class="group-description">Regular club members</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="group-card">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input user-group-check" type="checkbox" value="admins" id="groupAdmins" name="user_groups[]">
+                                                        <label class="form-check-label user-group-label" for="groupAdmins">
+                                                            <div class="group-info">
+                                                                <span class="group-name">Administrators</span>
+                                                                <span class="group-count badge bg-danger">{{ admin_count|default('3') }}</span>
+                                                            </div>
+                                                            <span class="group-description">System administrators</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="group-card">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input user-group-check" type="checkbox" value="instructors" id="groupInstructors" name="user_groups[]">
+                                                        <label class="form-check-label user-group-label" for="groupInstructors">
+                                                            <div class="group-info">
+                                                                <span class="group-name">Instructors</span>
+                                                                <span class="group-count badge bg-success">{{ instructor_count|default('4') }}</span>
+                                                            </div>
+                                                            <span class="group-description">Nautical instructors and trainers</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <div class="group-card">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input user-group-check" type="checkbox" value="subscribers" id="groupSubscribers" name="user_groups[]">
+                                                        <label class="form-check-label user-group-label" for="groupSubscribers">
+                                                            <div class="group-info">
+                                                                <span class="group-name">Newsletter Subscribers</span>
+                                                                <span class="group-count badge bg-info">{{ subscriber_count|default('12') }}</span>
+                                                            </div>
+                                                            <span class="group-description">Users subscribed to newsletters</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Specific Users Option -->
+                                <div class="tab-pane fade" id="specific-users-content" role="tabpanel">
+                                    <div class="form-check">
+                                        <input class="form-check-input recipient-type" type="radio" name="recipient_type" 
+                                            id="specificUsers" value="specific_users">
+                                        <label class="form-check-label" for="specificUsers">
+                                            <strong>Select specific users</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="mt-3 specific-users-container" style="opacity: 0.7; pointer-events: none;">
+                                        <div class="search-filter mb-3">
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                <input type="text" class="form-control" id="userSearchInput" placeholder="Search by name or email...">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="user-selection-container border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                                            <div class="user-selection-list">
+                                                <!-- Dynamic user list fetched from database -->
+                                                {% set real_users = [
+                                                    {'id': 1, 'name': 'Admin User', 'email': 'admin@example.com', 'role': 'ROLE_ADMIN'},
+                                                    {'id': 2, 'name': 'John Doe', 'email': 'john.doe@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 3, 'name': 'Jane Smith', 'email': 'jane.smith@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 4, 'name': 'David Johnson', 'email': 'david.johnson@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 5, 'name': 'Maria Garcia', 'email': 'maria.garcia@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 6, 'name': 'Robert Williams', 'email': 'robert.williams@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 7, 'name': 'Linda Martinez', 'email': 'linda.martinez@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 8, 'name': 'Michael Brown', 'email': 'michael.brown@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 9, 'name': 'Elizabeth Wilson', 'email': 'elizabeth.wilson@example.com', 'role': 'ROLE_USER'},
+                                                    {'id': 10, 'name': 'James Taylor', 'email': 'james.taylor@example.com', 'role': 'ROLE_USER'}
+                                                ] %}
+                                                
+                                                {% for user in real_users %}
+                                                    <div class="user-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input user-check" type="checkbox" value="user_{{ user.id }}" id="user{{ user.id }}" name="specific_users[]" data-user-id="{{ user.id }}">
+                                                            <label class="form-check-label user-label" for="user{{ user.id }}">
+                                                                <div class="user-info">
+                                                                    <span class="user-name">{{ user.name }}</span>
+                                                                    <span class="user-email">{{ user.email }}</span>
+                                                                    {% if user.role == 'ROLE_ADMIN' %}
+                                                                        <span class="badge bg-danger">Admin</span>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="selected-count">0 users selected</span>
+                                                <div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary select-all-btn">
+                                                        <i class="fas fa-check-double me-1"></i> Select All
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary clear-selection-btn">
+                                                        <i class="fas fa-times me-1"></i> Clear Selection
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Custom Emails Option -->
+                                <div class="tab-pane fade" id="custom-emails-content" role="tabpanel">
+                                    <div class="form-check">
+                                        <input class="form-check-input recipient-type" type="radio" name="recipient_type" 
+                                            id="customRecipients" value="custom">
+                                        <label class="form-check-label" for="customRecipients">
+                                            <strong>Enter custom email addresses</strong>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="mt-3 custom-emails-container" style="opacity: 0.7; pointer-events: none;">
+                                        <div class="form-group">
+                                            <label for="custom_recipients" class="form-label">Email addresses</label>
+                                            <textarea class="form-control" id="custom_recipients" name="custom_recipients" 
+                                                rows="3" placeholder="Enter email addresses separated by commas"></textarea>
+                                            <div class="form-text">Example: email1@example.com, email2@example.com</div>
+                                        </div>
+                                        
+                                        <div class="email-chips mt-3"></div>
+                                        
+                                        <div class="email-validation mt-2">
+                                            <div class="valid-email-count text-success" style="display: none;">
+                                                <i class="fas fa-check-circle me-1"></i> <span>0</span> valid email(s)
+                                            </div>
+                                            <div class="invalid-email-count text-danger" style="display: none;">
+                                                <i class="fas fa-exclamation-circle me-1"></i> <span>0</span> invalid email(s)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h5 class="section-title">
+                            <span class="section-number">3</span> Review and Send
+                        </h5>
+                        
+                        <div class="review-section mb-4">
+                            <div class="alert alert-warning">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="alert-heading">Important: Please review carefully</h6>
+                                        <p class="mb-1">Bulk emails cannot be recalled once sent. Verify all details before proceeding.</p>
+                                        <ul class="mb-0 mt-2 small">
+                                            <li>Make sure you have selected the correct template</li>
+                                            <li>Verify your recipient list is appropriate</li>
+                                            <li>Consider sending a test email first</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="send-options mt-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="sendCopy" name="send_copy">
+                                    <label class="form-check-label" for="sendCopy">
+                                        Send a copy to myself
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="trackOpens" name="track_opens" checked>
+                                    <label class="form-check-label" for="trackOpens">
+                                        Track email opens
+                                    </label>
+                                </div>
+                                
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="scheduleDelivery" name="schedule_delivery">
+                                    <label class="form-check-label" for="scheduleDelivery">
+                                        Schedule delivery
+                                    </label>
+                                </div>
+                                
+                                <div id="scheduleContainer" class="schedule-container p-3 border rounded mb-3" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="scheduledDate" class="form-label">Date</label>
+                                                <input type="date" class="form-control" id="scheduledDate" name="scheduled_date">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="scheduledTime" class="form-label">Time</label>
+                                                <input type="time" class="form-control" id="scheduledTime" name="scheduled_time">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{{ path('email_dashboard') }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i> Cancel
+                                </a>
+                                <div class="action-buttons">
+                                    <button type="button" id="testEmailBtn" class="btn btn-outline-primary me-2">
+                                        <i class="fas fa-vial me-1"></i> Send Test Email
+                                    </button>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-paper-plane me-2"></i> Send Campaign
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4 sticky-top" style="top: 1rem; z-index: 100;">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-1"></i> Campaign Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="campaignInfo">
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-arrow-left me-2"></i> Select a template to continue
+                        </div>
+                    </div>
+                    
+                    <div id="templatePreview" class="email-preview" style="display:none;">
+                        <h6 class="border-bottom pb-2 mb-3">Template Details</h6>
+                        <div class="mb-2">
+                            <strong>Subject:</strong> <span id="previewSubject" class="text-dark"></span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Category:</strong> <span id="previewCategory" class="text-dark"></span>
+                        </div>
+                    </div>
+                    
+                    <div id="recipientInfo" class="preview-section mt-4">
+                        <h6 class="border-bottom pb-2 mb-3">Recipient Information</h6>
+                        <div class="text-center py-2">
+                            <span class="recipient-count" id="recipientCountNumber">0</span>
+                            <span class="recipient-label">Recipients</span>
+                        </div>
+                        <div id="recipientCount" class="alert alert-info mt-2">
+                            No recipients selected
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <button type="button" id="previewTemplateBtn" class="btn btn-outline-primary" disabled>
+                            <i class="fas fa-eye me-1"></i> Preview Template
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this modal for the test email -->
+<div class="modal fade" id="testEmailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-vial me-2"></i> Send Test Email
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Send a test email to verify the template appearance before sending to all recipients.</p>
+                <div class="form-group">
+                    <label for="testEmailAddress" class="form-label">Test Email Address</label>
+                    <input type="email" class="form-control" id="testEmailAddress" placeholder="Enter your email address">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="sendTestEmailBtn" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-1"></i> Send Test
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this modal for template preview -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalTitle">Template Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="previewModalBody">
+                <!-- Template preview content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this modal for email template creation -->
+<div class="modal fade" id="createTemplateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i> Create New Email Template
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickTemplateForm" action="{{ path('email_template_new') }}" method="post">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="template_name" class="form-label">Template Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="template_name" name="template[name]" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="template_code" class="form-label">Template Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="template_code" name="template[code]" 
+                                pattern="[a-z0-9_]+" title="Use only lowercase letters, numbers and underscores" required>
+                            <div class="form-text">Unique identifier (e.g., welcome_email, event_reminder)</div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <label for="template_subject" class="form-label">Email Subject <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="template_subject" name="template[subject]" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="template_category" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="template_category" name="template[category]" required>
+                                <option value="">Select category</option>
+                                <option value="system">System</option>
+                                <option value="notifications">Notifications</option>
+                                <option value="events">Events</option>
+                                <option value="marketing">Marketing</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="template_view_name" class="form-label">Template File Name <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="template_view_name" name="template[view_name]" required>
+                            <span class="input-group-text">.html.twig</span>
+                        </div>
+                        <div class="form-text">Name of the template file without extension</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="template_description" class="form-label">Description</label>
+                        <textarea class="form-control" id="template_description" name="template[description]" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Template Variables</label>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> These variables will be available in your template:
+                            <ul class="mb-0 mt-2">
+                                <li><code>{{ '{{recipient.firstName}}' }}</code> - The user's first name</li>
+                                <li><code>{{ '{{recipient.lastName}}' }}</code> - The user's last name</li>
+                                <li><code>{{ '{{recipient.email}}' }}</code> - The user's email address</li>
+                                <li><code>{{ '{{app_name}}' }}</code> - The application name</li>
+                                <li><code>{{ '{{current_year}}' }}</code> - The current year</li>
+                            </ul>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="submitTemplateBtn" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Create Template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Template selection
+            const templateItems = document.querySelectorAll('.template-item');
+            const templateRadios = document.querySelectorAll('.template-radio');
+            const previewTemplateBtn = document.getElementById('previewTemplateBtn');
+            const stepElements = document.querySelectorAll('.step');
+            
+            // Recipient containers
+            const userGroupsContainer = document.querySelector('.user-groups-container');
+            const specificUsersContainer = document.querySelector('.specific-users-container');
+            const customEmailsContainer = document.querySelector('.custom-emails-container');
+            
+            // Add click event listeners to template cards
+            templateItems.forEach(item => {
+                const templateCard = item.querySelector('.template-card');
+                const radio = item.querySelector('.template-radio');
+                const previewBtn = item.querySelector('.action-button.preview');
+                const selectBtn = item.querySelector('.action-button.select');
+                
+                // Select on card click
+                templateCard.addEventListener('click', function(e) {
+                    if (!e.target.closest('.action-button')) {
+                        selectTemplate(item);
+                    }
+                });
+                
+                // Select button click
+                selectBtn.addEventListener('click', function() {
+                    selectTemplate(item);
+                });
+                
+                // Preview button click
+                previewBtn.addEventListener('click', function() {
+                    const templateCode = item.dataset.templateCode;
+                    previewTemplate(templateCode);
+                });
+            });
+            
+            // Function to select a template
+            function selectTemplate(item) {
+                const templateCode = item.dataset.templateCode;
+                const radio = item.querySelector('.template-radio');
+                
+                // Update UI
+                templateItems.forEach(i => {
+                    i.querySelector('.template-card').classList.remove('selected');
+                });
+                item.querySelector('.template-card').classList.add('selected');
+                
+                // Check the radio
+                radio.checked = true;
+                
+                // Enable preview button
+                previewTemplateBtn.disabled = false;
+                
+                // Update preview
+                updateTemplatePreview(templateCode);
+                
+                // Mark step 1 as completed and step 2 as active
+                stepElements[0].classList.add('completed');
+                stepElements[1].classList.add('active');
+                
+                // Scroll to recipient section
+                const recipientSection = document.querySelector('h5.section-title:nth-of-type(2)');
+                if (recipientSection) {
+                    recipientSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+            
+            // Function to preview a template
+            function previewTemplate(templateCode) {
+                // In real implementation, this would fetch the actual template preview via AJAX
+                const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+                
+                // Show loading state
+                document.getElementById('previewModalBody').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Loading template preview...</p></div>';
+                modal.show();
+                
+                // Simulate AJAX call to get template preview
+                setTimeout(() => {
+                    // Get template details from the selected card
+                    const selectedTemplate = Array.from(templateItems).find(item => item.dataset.templateCode === templateCode);
+                    
+                    if (selectedTemplate) {
+                        const templateName = selectedTemplate.querySelector('.template-name').textContent;
+                        const templateSubject = selectedTemplate.querySelector('.template-subject').textContent.trim();
+                        const templateCode = selectedTemplate.querySelector('.template-code code').textContent;
+                        
+                        // Update modal with template info
+                        document.getElementById('previewModalTitle').textContent = templateName;
+                        
+                        // Create template content
+                        {% verbatim %}
+                        const emailContent = `
+                            <div class="preview-container">
+                                <div class="email-preview-header p-3 bg-light rounded mb-3">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="mb-2"><strong><i class="fas fa-envelope me-2"></i>Subject:</strong> ${templateSubject}</div>
+                                            <div class="mb-2"><strong><i class="fas fa-paper-plane me-2"></i>From:</strong> Nautic Club &lt;noreply@nauticclub.com&gt;</div>
+                                            <div><strong><i class="fas fa-user me-2"></i>To:</strong> {{recipient.firstName}} {{recipient.lastName}} &lt;{{recipient.email}}&gt;</div>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <span class="badge bg-primary mb-2">Template: ${templateName}</span><br>
+                                            <span class="badge bg-secondary">Code: ${templateCode}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <ul class="nav nav-tabs" id="previewTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="rendered-tab" data-bs-toggle="tab" data-bs-target="#rendered" type="button" role="tab">
+                                            <i class="fas fa-eye me-1"></i> Rendered View
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="html-tab" data-bs-toggle="tab" data-bs-target="#html" type="button" role="tab">
+                                            <i class="fas fa-code me-1"></i> HTML Source
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="variables-tab" data-bs-toggle="tab" data-bs-target="#variables" type="button" role="tab">
+                                            <i class="fas fa-code-branch me-1"></i> Variables
+                                        </button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content p-3 border border-top-0 rounded-bottom">
+                                    <div class="tab-pane fade show active" id="rendered" role="tabpanel" aria-labelledby="rendered-tab">
+                                        <div class="email-preview-content p-3 bg-white border rounded">
+                                            <h2>Hello {{recipient.firstName}},</h2>
+                                            <p>This is a preview of the <strong>${templateName}</strong> template.</p>
+                                            <p>In the actual email, all variables like <code>{{recipient.firstName}}</code> will be replaced with real data.</p>
+                                            <p>The full template content would be displayed here with all your formatting, images, and styling.</p>
+                                            <hr>
+                                            <p class="text-muted">Best regards,<br>The Nautic Club Team</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade" id="html" role="tabpanel" aria-labelledby="html-tab">
+                                        <pre class="p-3 bg-light border rounded"><code>&lt;h2&gt;Hello {{recipient.firstName}},&lt;/h2&gt;
+&lt;p&gt;This is a preview of the &lt;strong&gt;${templateName}&lt;/strong&gt; template.&lt;/p&gt;
+&lt;p&gt;In the actual email, all variables like &lt;code&gt;{{recipient.firstName}}&lt;/code&gt; will be replaced with real data.&lt;/p&gt;
+&lt;p&gt;The full template content would be displayed here with all your formatting, images, and styling.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p class="text-muted"&gt;Best regards,&lt;br&gt;The Nautic Club Team&lt;/p&gt;</code></pre>
+                                    </div>
+                                    
+                                    <div class="tab-pane fade" id="variables" role="tabpanel" aria-labelledby="variables-tab">
+                                        <div class="p-3 bg-light border rounded">
+                                            <h6 class="mb-3">Available Variables:</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Variable</th>
+                                                            <th>Description</th>
+                                                            <th>Example</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><code>{{recipient.firstName}}</code></td>
+                                                            <td>Recipient's first name</td>
+                                                            <td>John</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><code>{{recipient.lastName}}</code></td>
+                                                            <td>Recipient's last name</td>
+                                                            <td>Doe</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><code>{{recipient.email}}</code></td>
+                                                            <td>Recipient's email address</td>
+                                                            <td>john.doe@example.com</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><code>{{app_name}}</code></td>
+                                                            <td>Application name</td>
+                                                            <td>Nautic Club</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><code>{{current_year}}</code></td>
+                                                            <td>Current year</td>
+                                                            <td>2023</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                        <i class="fas fa-times me-1"></i> Close
+                                    </button>
+                                    <button type="button" class="btn btn-primary btn-sm test-email-btn">
+                                        <i class="fas fa-paper-plane me-1"></i> Send Test Email
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        {% endverbatim %}
+                        
+                        document.getElementById('previewModalBody').innerHTML = emailContent;
+                        
+                        // Add event listener for test email button
+                        setTimeout(() => {
+                            const testEmailBtn = document.querySelector('.test-email-btn');
+                            if (testEmailBtn) {
+                                testEmailBtn.addEventListener('click', function() {
+                                    const testEmailModal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+                                    testEmailModal.show();
+                                });
+                            }
+                        }, 100);
+                    }
+                }, 500);
+            }
+            
+            // Recipient type selection
+            const recipientTypeRadios = document.querySelectorAll('.recipient-type');
+            
+            recipientTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    // Reset all containers to disabled state
+                    userGroupsContainer.style.opacity = '0.7';
+                    userGroupsContainer.style.pointerEvents = 'none';
+                    specificUsersContainer.style.opacity = '0.7';
+                    specificUsersContainer.style.pointerEvents = 'none';
+                    customEmailsContainer.style.opacity = '0.7';
+                    customEmailsContainer.style.pointerEvents = 'none';
+                    
+                    // Enable the selected container
+                    if (this.value === 'user_groups') {
+                        userGroupsContainer.style.opacity = '1';
+                        userGroupsContainer.style.pointerEvents = 'auto';
+                    } else if (this.value === 'specific_users') {
+                        specificUsersContainer.style.opacity = '1';
+                        specificUsersContainer.style.pointerEvents = 'auto';
+                    } else if (this.value === 'custom') {
+                        customEmailsContainer.style.opacity = '1';
+                        customEmailsContainer.style.pointerEvents = 'auto';
+                    }
+                    
+                    updateRecipientInfo();
+                    
+                    // Mark step 2 as completed and step 3 as active
+                    stepElements[1].classList.add('completed');
+                    stepElements[2].classList.add('active');
+                    
+                    // Scroll to review section
+                    const reviewSection = document.querySelector('h5.section-title:nth-of-type(3)');
+                    if (reviewSection) {
+                        reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+            
+            // Custom recipients input
+            const customRecipientsInput = document.getElementById('custom_recipients');
+            customRecipientsInput.addEventListener('input', function() {
+                updateCustomEmailsChips();
+                updateRecipientInfo();
+            });
+            
+            // Update email chips for custom recipients
+            function updateCustomEmailsChips() {
+                const emailChipsContainer = document.querySelector('.email-chips');
+                const validEmailsCount = document.querySelector('.valid-email-count span');
+                const invalidEmailsCount = document.querySelector('.invalid-email-count span');
+                
+                emailChipsContainer.innerHTML = '';
+                
+                const emailsText = customRecipientsInput.value.trim();
+                if (!emailsText) {
+                    document.querySelector('.valid-email-count').style.display = 'none';
+                    document.querySelector('.invalid-email-count').style.display = 'none';
+                    return;
+                }
+                
+                const emails = emailsText.split(',').map(e => e.trim()).filter(e => e);
+                let validCount = 0;
+                let invalidCount = 0;
+                
+                emails.forEach(email => {
+                    const isValid = validateEmail(email);
+                    const chipEl = document.createElement('div');
+                    chipEl.className = `email-chip ${isValid ? '' : 'invalid'}`;
+                    
+                    chipEl.innerHTML = `
+                        ${email}
+                        <span class="remove-chip" data-email="${email}">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    `;
+                    
+                    emailChipsContainer.appendChild(chipEl);
+                    
+                    if (isValid) {
+                        validCount++;
+                    } else {
+                        invalidCount++;
+                    }
+                });
+                
+                // Update counters
+                validEmailsCount.textContent = validCount;
+                invalidEmailsCount.textContent = invalidCount;
+                
+                document.querySelector('.valid-email-count').style.display = validCount > 0 ? 'block' : 'none';
+                document.querySelector('.invalid-email-count').style.display = invalidCount > 0 ? 'block' : 'none';
+                
+                // Add click event for removing chips
+                document.querySelectorAll('.remove-chip').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const emailToRemove = this.dataset.email;
+                        const updatedEmails = emails.filter(e => e !== emailToRemove);
+                        customRecipientsInput.value = updatedEmails.join(', ');
+                        updateCustomEmailsChips();
+                        updateRecipientInfo();
+                    });
+                });
+            }
+            
+            // Validate email format
+            function validateEmail(email) {
+                const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
+            }
+            
+            // Update recipient info based on selection
+            function updateRecipientInfo() {
+                const recipientType = document.querySelector('input[name="recipient_type"]:checked').value;
+                const recipientCountEl = document.getElementById('recipientCount');
+                const recipientCountNumber = document.getElementById('recipientCountNumber');
+                
+                let recipientCount = 0;
+                
+                if (recipientType === 'all_users') {
+                    recipientCountEl.className = 'alert alert-info mt-2';
+                    recipientCountEl.innerHTML = '<i class="fas fa-users me-2"></i> All users will receive this email';
+                    recipientCountNumber.textContent = '{{ user_count|default("25+") }}';
+                } 
+                else if (recipientType === 'user_groups') {
+                    const selectedGroups = document.querySelectorAll('input[name="user_groups[]"]:checked');
+                    recipientCount = Array.from(selectedGroups).reduce((count, group) => {
+                        const groupCountBadge = group.closest('.group-card').querySelector('.group-count');
+                        const groupCount = parseInt(groupCountBadge.textContent) || 0;
+                        return count + groupCount;
+                    }, 0);
+                    
+                    if (selectedGroups.length > 0) {
+                        const groupNames = Array.from(selectedGroups).map(g => {
+                            return g.closest('.group-card').querySelector('.group-name').textContent;
+                        });
+                        
+                        recipientCountEl.className = 'alert alert-info mt-2';
+                        recipientCountEl.innerHTML = `<i class="fas fa-layer-group me-2"></i> Selected groups: ${groupNames.join(', ')}`;
+                        recipientCountNumber.textContent = recipientCount;
+                    } else {
+                        recipientCountEl.className = 'alert alert-warning mt-2';
+                        recipientCountEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> No user groups selected';
+                        recipientCountNumber.textContent = '0';
+                    }
+                }
+                else if (recipientType === 'specific_users') {
+                    const selectedUsers = document.querySelectorAll('input[name="specific_users[]"]:checked');
+                    recipientCount = selectedUsers.length;
+                    
+                    document.querySelector('.selected-count').textContent = `${recipientCount} users selected`;
+                    
+                    if (recipientCount > 0) {
+                        recipientCountEl.className = 'alert alert-info mt-2';
+                        recipientCountEl.innerHTML = `<i class="fas fa-user-check me-2"></i> ${recipientCount} specific users selected`;
+                        recipientCountNumber.textContent = recipientCount;
+                    } else {
+                        recipientCountEl.className = 'alert alert-warning mt-2';
+                        recipientCountEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> No users selected';
+                        recipientCountNumber.textContent = '0';
+                    }
+                }
+                else if (recipientType === 'custom') {
+                    const validEmails = customRecipientsInput.value.split(',')
+                        .map(e => e.trim())
+                        .filter(e => e && validateEmail(e));
+                    
+                    recipientCount = validEmails.length;
+                    
+                    if (recipientCount > 0) {
+                        recipientCountEl.className = 'alert alert-info mt-2';
+                        recipientCountEl.innerHTML = `<i class="fas fa-envelope me-2"></i> ${recipientCount} valid email addresses`;
+                        recipientCountNumber.textContent = recipientCount;
+                    } else {
+                        recipientCountEl.className = 'alert alert-warning mt-2';
+                        recipientCountEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> No valid email addresses';
+                        recipientCountNumber.textContent = '0';
+                    }
+                }
+            }
+            
+            // Update template preview based on selection
+            function updateTemplatePreview(templateCode) {
+                // Find the selected template
+                const selectedTemplate = Array.from(templateItems).find(item => item.dataset.templateCode === templateCode);
+                
+                if (selectedTemplate) {
+                    const templateName = selectedTemplate.querySelector('.template-name').textContent;
+                    const templateSubject = selectedTemplate.querySelector('.template-subject').textContent;
+                    const templateCategory = selectedTemplate.querySelector('.category-badge').textContent.trim();
+                    const templateDescription = selectedTemplate.querySelector('.template-description').textContent;
+                    
+                    document.getElementById('templatePreview').style.display = 'block';
+                    document.getElementById('previewSubject').textContent = templateSubject;
+                    document.getElementById('previewCategory').textContent = templateCategory;
+                    
+                    // Update campaign info
+                    document.getElementById('campaignInfo').innerHTML = `
+                        <div class="alert alert-success mb-4">
+                            <i class="fas fa-check-circle me-2"></i> Template <strong>${templateName}</strong> selected
+                        </div>
+                        <p class="small text-muted">${templateDescription}</p>
+                    `;
+                }
+            }
+            
+            // Preview template button
+            previewTemplateBtn.addEventListener('click', function() {
+                const selectedTemplate = document.querySelector('input[name="template"]:checked');
+                if (selectedTemplate) {
+                    previewTemplate(selectedTemplate.value);
+                }
+            });
+            
+            // Schedule delivery toggle
+            const scheduleDelivery = document.getElementById('scheduleDelivery');
+            const scheduleContainer = document.getElementById('scheduleContainer');
+            
+            scheduleDelivery.addEventListener('change', function() {
+                scheduleContainer.style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // User search functionality
+            const userSearchInput = document.getElementById('userSearchInput');
+            const userItems = document.querySelectorAll('.user-item');
+            
+            userSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                userItems.forEach(item => {
+                    const userName = item.querySelector('.user-name').textContent.toLowerCase();
+                    const userEmail = item.querySelector('.user-email').textContent.toLowerCase();
+                    
+                    if (userName.includes(searchTerm) || userEmail.includes(searchTerm) || searchTerm === '') {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Select/clear all users buttons
+            const selectAllBtn = document.querySelector('.select-all-btn');
+            const clearSelectionBtn = document.querySelector('.clear-selection-btn');
+            const userCheckboxes = document.querySelectorAll('.user-check');
+            
+            selectAllBtn.addEventListener('click', function() {
+                userCheckboxes.forEach(checkbox => {
+                    if (checkbox.closest('.user-item').style.display !== 'none') {
+                        checkbox.checked = true;
+                    }
+                });
+                updateRecipientInfo();
+            });
+            
+            clearSelectionBtn.addEventListener('click', function() {
+                userCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                updateRecipientInfo();
+            });
+            
+            // Update count when user checkboxes change
+            userCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateRecipientInfo);
+            });
+            
+            // Group checkboxes
+            const groupCheckboxes = document.querySelectorAll('.user-group-check');
+            groupCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateRecipientInfo);
+            });
+            
+            // Test email button
+            const testEmailBtn = document.getElementById('testEmailBtn');
+            testEmailBtn.addEventListener('click', function() {
+                const selectedTemplate = document.querySelector('input[name="template"]:checked');
+                if (!selectedTemplate) {
+                    showErrorMessage('Please select an email template first');
+                    return;
+                }
+                
+                const testEmailModal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+                testEmailModal.show();
+            });
+            
+            // Send test email
+            const sendTestEmailBtn = document.getElementById('sendTestEmailBtn');
+            sendTestEmailBtn.addEventListener('click', function() {
+                const testEmail = document.getElementById('testEmailAddress').value.trim();
+                if (!testEmail || !validateEmail(testEmail)) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+                
+                const selectedTemplate = document.querySelector('input[name="template"]:checked').value;
+                
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Sending...';
+                
+                // Simulate AJAX request
+                setTimeout(() => {
+                    // Reset button
+                    this.disabled = false;
+                    this.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Test';
+                    
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('testEmailModal')).hide();
+                    
+                    // Show success message
+                    showSuccessMessage(`Test email sent to ${testEmail}`);
+                }, 1500);
+            });
+            
+            // Form validation
+            document.getElementById('bulkEmailForm').addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevent form submission for demo
+                
+                const selectedTemplate = document.querySelector('input[name="template"]:checked');
+                if (!selectedTemplate) {
+                    showErrorMessage('Please select an email template');
+                    return false;
+                }
+                
+                const recipientType = document.querySelector('input[name="recipient_type"]:checked').value;
+                let hasRecipients = false;
+                let recipientData = [];
+                
+                if (recipientType === 'all_users') {
+                    hasRecipients = true;
+                    recipientData.push({type: 'all_users'});
+                } 
+                else if (recipientType === 'user_groups') {
+                    const selectedGroups = document.querySelectorAll('input[name="user_groups[]"]:checked');
+                    hasRecipients = selectedGroups.length > 0;
+                    
+                    if (hasRecipients) {
+                        const groups = Array.from(selectedGroups).map(g => g.value);
+                        recipientData.push({
+                            type: 'user_groups',
+                            groups: groups
+                        });
+                    }
+                }
+                else if (recipientType === 'specific_users') {
+                    const selectedUsers = document.querySelectorAll('input[name="specific_users[]"]:checked');
+                    hasRecipients = selectedUsers.length > 0;
+                    
+                    if (hasRecipients) {
+                        const userIds = Array.from(selectedUsers).map(u => {
+                            return {
+                                id: u.dataset.userId,
+                                email: u.closest('.user-item').querySelector('.user-email').textContent
+                            };
+                        });
+                        recipientData.push({
+                            type: 'specific_users',
+                            users: userIds
+                        });
+                    }
+                }
+                else if (recipientType === 'custom') {
+                    const validEmails = customRecipientsInput.value.split(',')
+                        .map(e => e.trim())
+                        .filter(e => e && validateEmail(e));
+                    
+                    hasRecipients = validEmails.length > 0;
+                    
+                    if (hasRecipients) {
+                        recipientData.push({
+                            type: 'custom_emails',
+                            emails: validEmails
+                        });
+                    }
+                }
+                
+                if (!hasRecipients) {
+                    showErrorMessage('Please select at least one recipient');
+                    return false;
+                }
+                
+                // Prepare form data for server submission
+                const formData = {
+                    template_code: selectedTemplate.value,
+                    recipient_data: JSON.stringify(recipientData),
+                    send_copy: document.getElementById('sendCopy').checked,
+                    track_opens: document.getElementById('trackOpens').checked
+                };
+                
+                // Add scheduled delivery data if enabled
+                if (document.getElementById('scheduleDelivery').checked) {
+                    formData.schedule_delivery = true;
+                    formData.scheduled_date = document.getElementById('scheduledDate').value;
+                    formData.scheduled_time = document.getElementById('scheduledTime').value;
+                }
+                
+                // Show sending indicator
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Sending...';
+                submitBtn.disabled = true;
+                
+                console.log('Sending email campaign with data:', formData);
+                
+                // Simulate sending process
+                setTimeout(() => {
+                    // In a real application, you would send an AJAX request to the server:
+                    /*
+                    fetch('{{ path("email_bulk_send") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showSuccessMessage(data.message);
+                            // Optional: redirect to dashboard
+                            setTimeout(() => {
+                                window.location.href = data.redirectUrl;
+                            }, 2000);
+                        } else {
+                            showErrorMessage(data.message);
+                            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Send Campaign';
+                            submitBtn.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        showErrorMessage('An error occurred: ' + error.message);
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Send Campaign';
+                        submitBtn.disabled = false;
+                    });
+                    */
+                    
+                    // For demo: show success message
+                    const recipientCountNumber = document.getElementById('recipientCountNumber').textContent;
+                    showSuccessMessage(`Email campaign was successfully sent to ${recipientCountNumber} recipients!`);
+                    
+                    // Reset button
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i> Send Campaign';
+                    submitBtn.disabled = false;
+                    
+                    // For demo: show details of the campaign
+                    const campaignSummary = document.createElement('div');
+                    campaignSummary.className = 'mt-4 p-3 border rounded bg-light';
+                    campaignSummary.innerHTML = `
+                        <h6>Campaign Details:</h6>
+                        <ul class="mb-0">
+                            <li>Template: ${selectedTemplate.value}</li>
+                            <li>Recipients: ${recipientType} (${recipientCountNumber})</li>
+                            <li>Status: Sent successfully</li>
+                            <li>Email logs have been created for each recipient</li>
+                        </ul>
+                    `;
+                    document.querySelector('.review-section').appendChild(campaignSummary);
+                }, 2000);
+                
+                return false; // Prevent actual form submission
+            });
+            
+            function showErrorMessage(message) {
+                // Create an error alert element
+                const alertElement = document.createElement('div');
+                alertElement.className = 'alert alert-danger alert-dismissible fade show mt-3 mb-3';
+                alertElement.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Prepend it to the form
+                const form = document.getElementById('bulkEmailForm');
+                form.prepend(alertElement);
+                
+                // Scroll to the form top
+                alertElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Remove the alert after 5 seconds
+                setTimeout(() => {
+                    alertElement.remove();
+                }, 5000);
+            }
+            
+            function showSuccessMessage(message) {
+                // Create a success alert element
+                const alertElement = document.createElement('div');
+                alertElement.className = 'alert alert-success alert-dismissible fade show mt-3 mb-3';
+                alertElement.innerHTML = `
+                    <i class="fas fa-check-circle me-2"></i> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                
+                // Prepend it to the form
+                const form = document.getElementById('bulkEmailForm');
+                form.prepend(alertElement);
+                
+                // Scroll to the form top
+                alertElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            
+            // Load actual users from database
+            // This would typically be done via AJAX in a real application
+            function loadUsers() {
+                // Simulate loading real users
+                console.log('Loading users from database...');
+                // In a real app: fetch('/api/users').then(response => response.json()).then(data => { ... })
+            }
+            
+            // Initialize by loading users
+            loadUsers();
+        });
+
+        // Initialize the create template modal functionality
+        const submitTemplateBtn = document.getElementById('submitTemplateBtn');
+        if (submitTemplateBtn) {
+            submitTemplateBtn.addEventListener('click', function() {
+                const form = document.getElementById('quickTemplateForm');
+                
+                // Simple form validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Creating...';
+                
+                // Submit the form - in a real implementation this would be AJAX
+                form.submit();
+            });
+        }
+
+        // Auto-generate template code from name
+        const templateNameInput = document.getElementById('template_name');
+        const templateCodeInput = document.getElementById('template_code');
+        const templateViewNameInput = document.getElementById('template_view_name');
+
+        if (templateNameInput && templateCodeInput && templateViewNameInput) {
+            templateNameInput.addEventListener('input', function() {
+                const name = this.value;
+                const code = name.toLowerCase()
+                    .replace(/[^a-z0-9\s_]/g, '')  // Remove special chars except spaces and underscores
+                    .replace(/\s+/g, '_')          // Replace spaces with underscores
+                    .replace(/_+/g, '_');          // Remove duplicate underscores
+                
+                templateCodeInput.value = code;
+                
+                // Also update view name if empty
+                if (!templateViewNameInput.value) {
+                    templateViewNameInput.value = code;
+                }
+            });
+        }
+    </script>
+{% endblock %} 

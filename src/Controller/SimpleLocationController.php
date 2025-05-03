@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/simple-location')]
 class SimpleLocationController extends AbstractController
@@ -21,6 +22,7 @@ class SimpleLocationController extends AbstractController
     }
     
     #[Route('/new', name: 'simple_location_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
         $successMessage = null;
@@ -83,6 +85,7 @@ class SimpleLocationController extends AbstractController
     }
 
     #[Route('/', name: 'simple_location_index', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
     public function index(EntityManagerInterface $entityManager): Response
     {
         $locations = $entityManager->getRepository(LocationWeather::class)->findAll();
@@ -93,6 +96,7 @@ class SimpleLocationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'simple_location_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
     public function show(int $id, EntityManagerInterface $entityManager): Response
     {
         $location = $entityManager->getRepository(LocationWeather::class)->find($id);
@@ -111,6 +115,7 @@ class SimpleLocationController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'simple_location_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(int $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $location = $entityManager->getRepository(LocationWeather::class)->find($id);
@@ -139,6 +144,7 @@ class SimpleLocationController extends AbstractController
     }
 
     #[Route('/{id}/refresh-weather', name: 'simple_location_refresh_weather', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function refreshWeather(int $id, Request $request, EntityManagerInterface $entityManager): Response
     {
         $location = $entityManager->getRepository(LocationWeather::class)->find($id);

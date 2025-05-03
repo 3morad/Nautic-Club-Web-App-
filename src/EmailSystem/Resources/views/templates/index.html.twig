@@ -1,0 +1,718 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Email Templates{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Core styling */
+        .template-card {
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 0.15rem 1.25rem 0 rgba(58, 59, 69, 0.15);
+            position: relative;
+        }
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.15);
+        }
+        .template-card::after {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border-radius: 0.75rem;
+            box-shadow: 0 0.75rem 2.5rem rgba(0, 0, 0, 0.2);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .template-card:hover::after {
+            opacity: 1;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        .card-header {
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        .card-footer {
+            border-bottom-left-radius: 0.75rem !important;
+            border-bottom-right-radius: 0.75rem !important;
+            background-color: #f8f9fc;
+            border-top: 1px solid #e3e6f0;
+        }
+        
+        /* Header section */
+        .heading-section {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e3e6f0;
+            position: relative;
+        }
+        .heading-section:after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            border-radius: 3px;
+        }
+        .heading-section h1 {
+            margin: 0;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 8s ease infinite;
+            background-size: 200% 200%;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .heading-section .badge {
+            margin-left: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            background: rgba(78, 115, 223, 0.1);
+            color: #4e73df;
+            font-weight: 500;
+        }
+        
+        /* Buttons */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .action-btn:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            z-index: -1;
+        }
+        .action-btn:hover:before {
+            left: 0;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .action-btn.primary {
+            background: linear-gradient(135deg, #4e73df 0%, #3a5ccc 100%);
+            border: none;
+        }
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, #3a5ccc 0%, #224abe 100%);
+        }
+        
+        /* Category badges and pills */
+        .category-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-badge:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            z-index: 0;
+        }
+        .category-badge:hover:before {
+            left: 0;
+        }
+        .category-pill {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            margin-right: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border: 1px solid #e3e6f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .category-pill:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .category-pill:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: rgba(78, 115, 223, 0.1);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+        .category-pill:hover:after {
+            left: 0;
+        }
+        .category-pill:hover, .category-pill.active {
+            background: #4e73df;
+            color: white;
+            border-color: #4e73df;
+        }
+        
+        /* Search box */
+        .search-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .search-box input {
+            padding-left: 3rem;
+            height: 3.25rem;
+            border-radius: 50px;
+            border: 1px solid #e3e6f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        .search-box input:focus {
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+            border-color: #bac8f3;
+        }
+        .search-box i {
+            position: absolute;
+            left: 1.25rem;
+            top: 1.1rem;
+            color: #b7b9cc;
+            transition: all 0.3s;
+        }
+        .search-box input:focus + i,
+        .search-box:hover i {
+            color: #4e73df;
+        }
+        
+        /* Template grid and actions */
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+        .template-actions {
+            opacity: 0;
+            transition: all 0.3s ease;
+            transform: translateY(10px);
+        }
+        .template-card:hover .template-actions {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .action-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: white;
+            color: #4e73df;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .action-icon:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            z-index: -1;
+        }
+        .action-icon:hover:after {
+            left: 0;
+        }
+        .action-icon:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .action-icon.edit:hover {
+            background: #4e73df;
+            color: white;
+        }
+        .action-icon.preview:hover {
+            background: #1cc88a;
+            color: white;
+        }
+        .action-icon.delete:hover {
+            background: #e74a3b;
+            color: white;
+        }
+        
+        /* Card hover effects */
+        .card-body {
+            transition: all 0.3s;
+        }
+        .template-card:hover .card-body {
+            background-color: #f8f9fc;
+        }
+        .card-title {
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .card-title:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #4e73df;
+            transition: all 0.3s;
+        }
+        .template-card:hover .card-title:after {
+            width: 100%;
+        }
+        
+        /* Category colors with improved styling */
+        .category-notifications {
+            background: rgba(54, 185, 204, 0.15);
+            color: #36b9cc;
+            border: 1px solid rgba(54, 185, 204, 0.2);
+        }
+        .category-events {
+            background: rgba(28, 200, 138, 0.15);
+            color: #1cc88a;
+            border: 1px solid rgba(28, 200, 138, 0.2);
+        }
+        .category-marketing {
+            background: rgba(246, 194, 62, 0.15);
+            color: #f6c23e;
+            border: 1px solid rgba(246, 194, 62, 0.2);
+        }
+        .category-system {
+            background: rgba(78, 115, 223, 0.15);
+            color: #4e73df;
+            border: 1px solid rgba(78, 115, 223, 0.2);
+        }
+        .category-user {
+            background: rgba(231, 74, 59, 0.15);
+            color: #e74a3b;
+            border: 1px solid rgba(231, 74, 59, 0.2);
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .empty-state .icon {
+            font-size: 3.5rem;
+            color: #dddfeb;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .empty-state h4 {
+            color: #5a5c69;
+            margin-bottom: 1rem;
+        }
+        .empty-state p {
+            color: #858796;
+            max-width: 500px;
+            margin: 0 auto 1.5rem;
+        }
+        
+        /* Tooltips */
+        [title] {
+            position: relative;
+        }
+        
+        /* Modal enhancements */
+        .modal-content {
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: none;
+        }
+        .modal-header {
+            border-top-left-radius: 0.75rem !important;
+            border-top-right-radius: 0.75rem !important;
+        }
+        .modal-footer {
+            border-bottom-left-radius: 0.75rem !important;
+            border-bottom-right-radius: 0.75rem !important;
+        }
+        
+        /* Code styling */
+        code {
+            padding: 0.25rem 0.5rem;
+            background: #f0f2f8;
+            border-radius: 0.25rem;
+            color: #4e73df;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        code:hover {
+            background: #e9ecf5;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .template-grid {
+                grid-template-columns: 1fr;
+            }
+            .template-actions {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .heading-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .heading-section .badge {
+                margin-left: 0;
+            }
+            .heading-section .ms-auto {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+            .heading-section .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4">
+    <div class="heading-section my-4">
+        <h1 class="display-5">Email System</h1>
+        <span class="badge">Template Library</span>
+        <div class="ms-auto">
+            <a href="{{ path('email_template_new') }}" class="btn btn-primary action-btn primary">
+                <i class="fas fa-plus"></i>
+                <span>New Template</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9 order-lg-2">
+            <!-- Search Box -->
+            <div class="search-box">
+                <form method="get" action="{{ path('email_template_index') }}" id="searchForm">
+                    <input type="text" name="search" class="form-control" placeholder="Search templates by name, code or subject..." value="{{ searchTerm }}" id="searchInput">
+                    <i class="fas fa-search"></i>
+                </form>
+            </div>
+            
+            <!-- Template Grid -->
+            {% if templates|length > 0 %}
+                <div class="template-grid">
+                    {% for template in templates %}
+                        <div class="template-card" data-category="{{ template.category }}" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span class="category-badge category-{{ template.category }}">
+                                        {{ template.category|capitalize }}
+                                    </span>
+                                    <div class="template-actions">
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ path('email_template_edit', {id: template.id}) }}" class="action-icon edit" title="Edit Template">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ path('email_template_preview', {id: template.id}) }}" class="action-icon preview" target="_blank" title="Preview Template">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="#" class="action-icon delete" data-bs-toggle="modal" data-bs-target="#deleteModal{{ template.id }}" title="Delete Template">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary mb-3">{{ template.name }}</h5>
+                                    <div class="small mb-2">
+                                        <strong>Code:</strong> <code>{{ template.code }}</code>
+                                    </div>
+                                    <div class="small mb-3">
+                                        <strong>Subject:</strong> {{ template.subject }}
+                                    </div>
+                                    {% if template.description %}
+                                        <p class="text-muted small">{{ template.description|length > 100 ? template.description|slice(0, 100) ~ '...' : template.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="far fa-clock me-1"></i> Updated: {{ template.updatedAt|date('M d, Y') }}
+                                        </small>
+                                        <a href="{{ path('email_log_template', {code: template.code}) }}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-history me-1"></i> View Logs
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteModal{{ template.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            Confirm Deletion
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete the template <strong>{{ template.name }}</strong>?</p>
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            This action cannot be undone. Any emails that use this template may fail to send.
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                            <i class="fas fa-times me-1"></i> Cancel
+                                        </button>
+                                        <form action="{{ path('email_template_delete', {id: template.id}) }}" method="post">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ template.id) }}">
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="icon">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <h4>No templates found</h4>
+                    {% if searchTerm %}
+                        <p>No templates match your search criteria "{{ searchTerm }}". Try a different search term or clear the filter.</p>
+                        <a href="{{ path('email_template_index') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-times me-1"></i> Clear Search
+                        </a>
+                    {% elseif currentCategory %}
+                        <p>No templates found in category "{{ currentCategory|capitalize }}". Try a different category or create a new template.</p>
+                        <div class="mt-3">
+                            <a href="{{ path('email_template_index') }}" class="btn btn-outline-primary me-2">
+                                <i class="fas fa-times me-1"></i> Clear Filter
+                            </a>
+                            <a href="{{ path('email_template_new') }}" class="btn btn-primary action-btn primary">
+                                <i class="fas fa-plus me-1"></i> Create Template
+                            </a>
+                        </div>
+                    {% else %}
+                        <p>Get started by creating your first email template.</p>
+                        <a href="{{ path('email_template_new') }}" class="btn btn-primary action-btn primary">
+                            <i class="fas fa-plus me-1"></i> Create Your First Template
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-3 order-lg-1">
+            <div class="card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-filter me-1"></i> Categories
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <a href="{{ path('email_template_index') }}" class="category-pill {% if currentCategory is null and searchTerm is null %}active{% endif %}">
+                        All Templates 
+                        <span class="badge bg-secondary ms-1">{{ templates|length }}</span>
+                    </a>
+                    
+                    {% for category, count in categories %}
+                        <a href="{{ path('email_template_index', {category: category}) }}" class="category-pill {% if currentCategory == category %}active{% endif %}">
+                            {{ category|capitalize }}
+                            <span class="badge bg-secondary ms-1">{{ count }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-1"></i> Quick Tips
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><i class="fas fa-lightbulb text-warning me-2"></i> Template Variables</h6>
+                        <p class="small text-muted">Use these variables in your templates:</p>
+                        <div class="bg-light p-2 rounded mb-2 small">
+                            <code>{{ '{{ recipient.firstName }}' }}</code><br>
+                            <code>{{ '{{ recipient.lastName }}' }}</code><br>
+                            <code>{{ '{{ recipient.email }}' }}</code><br>
+                            <code>{{ '{{ app_name }}' }}</code><br>
+                            <code>{{ '{{ current_year }}' }}</code>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h6><i class="fas fa-code text-primary me-2"></i> Template Testing</h6>
+                        <p class="small text-muted">Test your templates before sending:</p>
+                        <ol class="small text-muted ps-3">
+                            <li>Create your template</li>
+                            <li>Click "Preview" to check the design</li>
+                            <li>Send a test email from the dashboard</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-1"></i> Stats
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">Template distribution:</p>
+                    <div class="chart-container" style="height: 180px;">
+                        <canvas id="templateStats"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Real-time search filtering
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('searchForm').submit();
+                }
+            });
+        }
+        
+        // Template stats chart (if Chart.js is available)
+        if (typeof Chart !== 'undefined') {
+            const categoriesData = {{ categories|json_encode|raw }};
+            const categories = Object.keys(categoriesData);
+            const counts = categories.map(category => categoriesData[category]);
+            
+            // Define colors for each category
+            const categoryColors = {
+                'notifications': 'rgba(54, 185, 204, 0.7)',
+                'events': 'rgba(28, 200, 138, 0.7)',
+                'marketing': 'rgba(246, 194, 62, 0.7)',
+                'system': 'rgba(78, 115, 223, 0.7)',
+                'user': 'rgba(231, 74, 59, 0.7)',
+                // Default color for other categories
+                'default': 'rgba(133, 135, 150, 0.7)'
+            };
+            
+            // Map category names to colors
+            const chartColors = categories.map(category => 
+                categoryColors[category] || categoryColors.default
+            );
+            
+            const ctx = document.getElementById('templateStats');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: categories.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1)),
+                        datasets: [{
+                            data: counts,
+                            backgroundColor: chartColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        }
+        
+        // Add animation effects if AOS library is available
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-out-cubic',
+                once: true
+            });
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

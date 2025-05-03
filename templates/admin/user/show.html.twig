@@ -1,0 +1,136 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}User Details{% endblock %}
+
+{% block body %}
+    <div class="container mx-auto px-4">
+        <div class="flex items-center mb-6">
+            <a href="{{ path('admin_user_index') }}" class="mr-4 text-gray-600 hover:text-purple-600">
+                <i class="fas fa-arrow-left"></i> Back to User List
+            </a>
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-user text-purple-600 mr-3"></i>User Details
+            </h1>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- User Information -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center mb-6">
+                    <div class="h-20 w-20 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-3xl">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h2 class="text-xl font-bold text-gray-800">{{ user.firstName }} {{ user.lastName }}</h2>
+                        <p class="text-sm text-gray-500">{{ user.email }}</p>
+                        <div class="mt-1">
+                            {% for role in user.roles %}
+                                {% if role == 'ROLE_ADMIN' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        <i class="fas fa-shield-alt mr-1"></i>Admin
+                                    </span>
+                                {% elseif role == 'ROLE_USER' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-user mr-1"></i>User
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        {{ role }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-medium text-gray-700">Account Information</h3>
+                        <a href="{{ path('admin_user_edit', {'id': user.id}) }}" class="text-sm text-purple-600 hover:text-purple-800">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">User ID</p>
+                            <p class="font-medium">{{ user.id }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Email</p>
+                            <p class="font-medium">{{ user.email }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Full Name</p>
+                            <p class="font-medium">{{ user.firstName }} {{ user.lastName }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Event Registrations</p>
+                            <p class="font-medium">{{ user.eventRegistrations|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Event Registrations -->
+            <div class="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800">Event Registrations</h2>
+                    <span class="inline-flex items-center px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">
+                        Total: {{ user.eventRegistrations|length }}
+                    </span>
+                </div>
+
+                {% if user.eventRegistrations|length > 0 %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                                <tr>
+                                    <th class="py-3 px-4 text-left">ID</th>
+                                    <th class="py-3 px-4 text-left">Event</th>
+                                    <th class="py-3 px-4 text-left">Date</th>
+                                    <th class="py-3 px-4 text-left">Status</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for registration in user.eventRegistrations %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="py-3 px-4">{{ registration.id }}</td>
+                                        <td class="py-3 px-4 font-medium">{{ registration.event.name }}</td>
+                                        <td class="py-3 px-4">{{ registration.event.eventDate|date('Y-m-d') }}</td>
+                                        <td class="py-3 px-4">
+                                            {% if registration.status == 'pending' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                    <i class="fas fa-clock mr-1"></i>Pending
+                                                </span>
+                                            {% elseif registration.status == 'confirmed' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-check mr-1"></i>Confirmed
+                                                </span>
+                                            {% elseif registration.status == 'cancelled' %}
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <i class="fas fa-times mr-1"></i>Cancelled
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3 px-4 text-right">
+                                            <a href="{{ path('simple_event_show', {'id': registration.event.id}) }}" class="text-blue-600 hover:text-blue-800 mr-2">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-ticket-alt text-4xl mb-3 opacity-30"></i>
+                        <p>No event registrations found for this user.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %} 

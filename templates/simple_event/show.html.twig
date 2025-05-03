@@ -13,18 +13,22 @@
                     <span>Details</span>
                 </div>
             </div>
+            {% if is_granted('ROLE_ADMIN') %}
             <div>
                 <a href="{{ path('simple_event_edit', {'id': event.id}) }}" 
                    class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
                     <i class="fas fa-edit mr-2"></i>Edit Event
                 </a>
             </div>
+            {% endif %}
         </div>
 
-        {% for message in app.flashes('success') %}
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md" role="alert">
-                <p>{{ message }}</p>
-            </div>
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="bg-{{ label == 'success' ? 'green' : (label == 'error' ? 'red' : (label == 'info' ? 'blue' : 'yellow')) }}-100 border-l-4 border-{{ label == 'success' ? 'green' : (label == 'error' ? 'red' : (label == 'info' ? 'blue' : 'yellow')) }}-500 text-{{ label == 'success' ? 'green' : (label == 'error' ? 'red' : (label == 'info' ? 'blue' : 'yellow')) }}-700 p-4 mb-6 rounded-md" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
         {% endfor %}
         
         <div class="bg-white rounded-lg shadow-lg overflow-hidden">
@@ -96,28 +100,112 @@
                                 </div>
                             </div>
                             {% endif %}
+                            
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-indigo-100 p-3 rounded-full text-indigo-500">
+                                        <i class="fas fa-euro-sign text-xl"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-500 uppercase">Price</h3>
+                                    <p class="text-gray-800 font-medium">
+                                        {% if event.price > 0 %}
+                                            €{{ event.price|number_format(2, '.', ',') }}
+                                        {% else %}
+                                            Free
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="bg-red-100 p-3 rounded-full text-red-500">
+                                        <i class="fas fa-users text-xl"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-500 uppercase">Capacity</h3>
+                                    <p class="text-gray-800 font-medium">
+                                        {% if event.capacity %}
+                                            {{ event.registrationCount }}/{{ event.capacity }} spots filled
+                                            {% if event.isFull() %}
+                                                <span class="bg-red-500 text-white text-xs px-2 py-1 rounded ml-2">FULL</span>
+                                            {% endif %}
+                                        {% else %}
+                                            Unlimited capacity
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
                     <div class="md:w-1/3 mt-8 md:mt-0">
                         <div class="bg-gray-50 rounded-lg p-6 shadow-inner">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Actions</h3>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Registration</h3>
                             <div class="space-y-3">
-                                <a href="{{ path('simple_event_edit', {'id': event.id}) }}" 
-                                   class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded flex items-center justify-center transition">
-                                    <i class="fas fa-pencil-alt mr-2"></i>Edit Event
-                                </a>
+                                {% if is_granted('ROLE_USER') %}
+                                    {% set isRegistered = false %}
+                                    {% for registration in app.user.eventRegistrations %}
+                                        {% if registration.event.id == event.id and registration.paymentStatus != 'cancelled' %}
+                                            {% set isRegistered = true %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if isRegistered %}
+                                        <div class="bg-green-100 text-green-700 p-4 rounded">
+                                            <i class="fas fa-check-circle mr-2"></i>
+                                            You are registered for this event
+                                        </div>
+                                        <a href="{{ path('event_registration_my_registrations') }}" 
+                                           class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center transition">
+                                            <i class="fas fa-ticket-alt mr-2"></i>Manage My Registration
+                                        </a>
+                                    {% elseif not event.isFull() %}
+                                        <a href="{{ path('event_registration_form', {'id': event.id}) }}" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center transition">
+                                            <i class="fas fa-ticket-alt mr-2"></i>Register for this Event
+                                        </a>
+                                    {% else %}
+                                        <div class="bg-red-100 text-red-700 p-4 rounded">
+                                            <i class="fas fa-exclamation-circle mr-2"></i>
+                                            This event is fully booked
+                                        </div>
+                                    {% endif %}
+                                {% elseif not is_granted('IS_AUTHENTICATED_FULLY') %}
+                                    <a href="{{ path('app_login') }}" 
+                                       class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded flex items-center justify-center transition">
+                                        <i class="fas fa-sign-in-alt mr-2"></i>Login to Register
+                                    </a>
+                                {% endif %}
                                 
-                                <form method="post" action="{{ path('simple_event_delete', {'id': event.id}) }}" 
-                                      onsubmit="return confirm('Are you sure you want to delete this event?');" class="w-full">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
-                                    <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center transition">
-                                        <i class="fas fa-trash-alt mr-2"></i>Delete Event
-                                    </button>
-                                </form>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <div class="mt-6 border-t pt-6">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Admin Controls</h3>
+
+                                        <a href="{{ path('simple_event_edit', {'id': event.id}) }}" 
+                                          class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded flex items-center justify-center transition mb-3">
+                                            <i class="fas fa-pencil-alt mr-2"></i>Edit Event
+                                        </a>
+                                        
+                                        <a href="{{ path('event_registration_admin_event', {'id': event.id}) }}" 
+                                          class="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded flex items-center justify-center transition mb-3">
+                                            <i class="fas fa-users mr-2"></i>Manage Registrations
+                                        </a>
+                                        
+                                        <form method="post" action="{{ path('simple_event_delete', {'id': event.id}) }}" 
+                                              onsubmit="return confirm('Are you sure you want to delete this event?');" class="w-full">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ event.id) }}">
+                                            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded flex items-center justify-center transition">
+                                                <i class="fas fa-trash-alt mr-2"></i>Delete Event
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
                                 
                                 <a href="{{ path('simple_event_index') }}" 
-                                   class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded flex items-center justify-center transition">
+                                   class="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded flex items-center justify-center transition mt-4">
                                     <i class="fas fa-arrow-left mr-2"></i>Back to Events
                                 </a>
                             </div>

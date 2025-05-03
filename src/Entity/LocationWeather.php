@@ -8,37 +8,57 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: LocationWeatherRepository::class)]
+/**
+ * @ORM\Entity(repositoryClass=LocationWeatherRepository::class)
+ */
 class LocationWeather
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    /**
+     * @ORM\Id
+     * @ORM\GeneratedValue
+     * @ORM\Column(type="integer")
+     */
+    private $id;
 
-    #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $name;
 
-    #[ORM\Column(type: Types::FLOAT)]
-    private ?float $latitude = null;
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $latitude;
 
-    #[ORM\Column(type: Types::FLOAT)]
-    private ?float $longitude = null;
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $longitude;
 
-    #[ORM\Column(length: 255)]
-    private ?string $region = null;
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $region;
 
-    #[ORM\Column(type: Types::FLOAT)]
-    private ?float $temperature = null;
+    /**
+     * @ORM\Column(type="float")
+     */
+    private $temperature;
 
-    #[ORM\Column(length: 255)]
-    private ?string $weatherCondition = null;
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $weatherCondition;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updatedAt = null;
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $updatedAt;
 
-    #[ORM\OneToMany(mappedBy: 'locationWeather', targetEntity: Event::class)]
-    private Collection $events;
+    /**
+     * @ORM\OneToMany(targetEntity=Event::class, mappedBy="locationWeather")
+     */
+    private $events;
 
     public function __construct()
     {
@@ -56,7 +76,7 @@ class LocationWeather
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -68,7 +88,7 @@ class LocationWeather
         return $this->latitude;
     }
 
-    public function setLatitude(float $latitude): static
+    public function setLatitude(float $latitude): self
     {
         $this->latitude = $latitude;
 
@@ -80,7 +100,7 @@ class LocationWeather
         return $this->longitude;
     }
 
-    public function setLongitude(float $longitude): static
+    public function setLongitude(float $longitude): self
     {
         $this->longitude = $longitude;
 
@@ -92,7 +112,7 @@ class LocationWeather
         return $this->region;
     }
 
-    public function setRegion(string $region): static
+    public function setRegion(string $region): self
     {
         $this->region = $region;
 
@@ -104,7 +124,7 @@ class LocationWeather
         return $this->temperature;
     }
 
-    public function setTemperature(float $temperature): static
+    public function setTemperature(float $temperature): self
     {
         $this->temperature = $temperature;
 
@@ -116,7 +136,7 @@ class LocationWeather
         return $this->weatherCondition;
     }
 
-    public function setWeatherCondition(string $weatherCondition): static
+    public function setWeatherCondition(string $weatherCondition): self
     {
         $this->weatherCondition = $weatherCondition;
 
@@ -128,7 +148,7 @@ class LocationWeather
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $updatedAt): static
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): self
     {
         $this->updatedAt = $updatedAt;
 
@@ -143,7 +163,7 @@ class LocationWeather
         return $this->events;
     }
 
-    public function addEvent(Event $event): static
+    public function addEvent(Event $event): self
     {
         if (!$this->events->contains($event)) {
             $this->events->add($event);
@@ -153,7 +173,7 @@ class LocationWeather
         return $this;
     }
 
-    public function removeEvent(Event $event): static
+    public function removeEvent(Event $event): self
     {
         if ($this->events->removeElement($event)) {
             // set the owning side to null (unless already changed)

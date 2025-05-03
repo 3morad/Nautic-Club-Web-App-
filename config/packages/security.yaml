@@ -4,26 +4,53 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                username_parameter: _username
+                password_parameter: _password
+                enable_csrf: true
+                default_target_path: user_dashboard
+                always_use_default_target_path: false
+                target_path_parameter: _target_path
+            logout:
+                path: app_logout
+                target: home
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 1 week
+                path: /
+            access_denied_handler: App\Security\AccessDeniedHandler
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
+    role_hierarchy:
+        ROLE_ADMIN: ROLE_USER
 
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/login, roles: PUBLIC_ACCESS }
+        - { path: ^/create-user, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/admin-dashboard, roles: ROLE_ADMIN }
+        - { path: ^/user-dashboard, roles: ROLE_USER }
+        - { path: ^/simple-location$, roles: ROLE_USER }
+        - { path: ^/simple-location/$, roles: ROLE_USER }
+        - { path: ^/simple-location/\d+$, roles: ROLE_USER }
+        - { path: ^/simple-location/new, roles: ROLE_ADMIN }
+        - { path: ^/simple-location/\d+/delete, roles: ROLE_ADMIN }
+        - { path: ^/simple-location/\d+/refresh-weather, roles: ROLE_ADMIN }
 
 when@test:
     security:
