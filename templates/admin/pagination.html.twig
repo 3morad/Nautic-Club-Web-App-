@@ -1,0 +1,29 @@
+<nav class="flex justify-center mt-4">
+    <ul class="inline-flex items-center -space-x-px">
+        {# Previous page link #}
+        <li>
+            <a href="{% if previous is defined and previous %}{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': previous})) }}{% else %}#{% endif %}"
+               class="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
+               {% if previous is not defined or not previous %}aria-disabled="true" tabindex="-1"{% endif %}>
+                &laquo;
+            </a>
+        </li>
+        {# Page numbers #}
+        {% for page in pagesInRange %}
+            <li>
+                <a href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': page})) }}"
+                   class="px-3 py-2 leading-tight border border-gray-300 {% if page == current %}bg-purple-600 text-white{% else %}bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700{% endif %}">
+                    {{ page }}
+                </a>
+            </li>
+        {% endfor %}
+        {# Next page link #}
+        <li>
+            <a href="{% if next is defined and next %}{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({'page': next})) }}{% else %}#{% endif %}"
+               class="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
+               {% if next is not defined or not next %}aria-disabled="true" tabindex="-1"{% endif %}>
+                &raquo;
+            </a>
+        </li>
+    </ul>
+</nav> 

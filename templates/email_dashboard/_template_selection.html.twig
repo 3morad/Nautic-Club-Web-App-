@@ -1,0 +1,252 @@
+<div class="mb-8">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Select an Email Template</h2>
+    
+    <!-- Search & Filter -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <div class="flex items-center space-x-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="templateSearch" placeholder="Search templates..." 
+                           class="pl-10 w-full py-2 px-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <div class="dropdown relative">
+                    <button class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center" 
+                            data-bs-toggle="dropdown">
+                        <i class="fas fa-filter mr-2 text-gray-500"></i> 
+                        <span>Filter</span>
+                    </button>
+                    <div class="dropdown-menu absolute hidden min-w-[200px] mt-1 bg-white shadow-lg rounded-lg border border-gray-200 z-10">
+                        <div class="p-3">
+                            <div class="mb-2 font-semibold text-gray-700">Categories</div>
+                            {% for category in categories|default(['notifications', 'events', 'marketing']) %}
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input category-filter" type="checkbox" value="{{ category }}" id="category-{{ category }}">
+                                    <label class="form-check-label ml-2" for="category-{{ category }}">
+                                        {{ category|capitalize }}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                            <div class="mt-3 flex justify-end">
+                                <button class="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Templates Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="templatesGrid">
+        {% if templates is empty %}
+            <div class="bg-yellow-50 text-yellow-800 p-4 rounded-lg col-span-full">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                No templates found. <a href="{{ path('email_template_new') }}" class="underline font-medium">Create your first template</a>.
+            </div>
+        {% else %}
+            {% for template in templates %}
+                <div class="template-card-wrapper" data-category="{{ template.category }}" data-name="{{ template.name|lower }}" data-code="{{ template.code|lower }}">
+                    <div class="relative h-full">
+                        <input type="radio" name="template" value="{{ template.id }}" id="template-{{ template.id }}" class="hidden template-radio" 
+                              {% if selectedTemplate is defined and selectedTemplate == template.id %}checked{% endif %}>
+                              
+                        <label for="template-{{ template.id }}" class="template-label block cursor-pointer h-full">
+                            <div class="template-card h-full bg-white shadow-md rounded-lg p-4 flex flex-col justify-between transition-all duration-200
+                                {% if selectedTemplate is defined and selectedTemplate == template.id %}ring-2 ring-blue-500 transform -translate-y-1{% endif %}">
+                                
+                                <!-- Template Header -->
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-0.5 rounded-full">{{ template.category|default('Uncategorized')|capitalize }}</span>
+                                    <div class="w-6 h-6 flex items-center justify-center rounded-full border-2 border-gray-300 check-indicator
+                                        {% if selectedTemplate is defined and selectedTemplate == template.id %}bg-blue-500 border-blue-500{% endif %}">
+                                        <i class="fas fa-check text-white {% if selectedTemplate is defined and selectedTemplate == template.id %}opacity-100{% else %}opacity-0{% endif %}"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Template Content -->
+                                <div>
+                                    <h3 class="font-bold text-gray-800 mb-1">{{ template.name }}</h3>
+                                    <div class="text-xs text-gray-500 mb-2">
+                                        <span class="font-mono bg-gray-100 px-2 py-0.5 rounded">{{ template.code }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="font-medium text-gray-700">Subject:</span>
+                                        <span class="text-gray-600">{{ template.subject }}</span>
+                                    </div>
+                                    <p class="text-gray-500 text-sm mb-3 line-clamp-2">{{ template.description|default('No description') }}</p>
+                                </div>
+                                
+                                <!-- Template Actions -->
+                                <div class="flex justify-between mt-2">
+                                    <button type="button" class="preview-btn text-sm text-green-600 hover:text-green-700 flex items-center"
+                                            data-template-id="{{ template.id }}">
+                                        <i class="fas fa-eye mr-1"></i> Preview
+                                    </button>
+                                    <span class="text-xs text-gray-400">Updated: {{ template.updatedAt|date('M d, Y')|default('N/A') }}</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Template Preview Modal -->
+<div class="modal fade" id="templatePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-blue-600 text-white">
+                <h5 class="modal-title">Template Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="template-preview-content p-4 bg-gray-50 border rounded-lg">
+                    <!-- Preview content will be loaded here -->
+                    <div class="flex justify-center items-center py-10">
+                        <div class="spinner-border text-blue-500" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary select-template-btn">
+                    <i class="fas fa-check mr-1"></i> Use this template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Template search functionality
+    const searchInput = document.getElementById('templateSearch');
+    const templateCards = document.querySelectorAll('.template-card-wrapper');
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        templateCards.forEach(card => {
+            const name = card.dataset.name;
+            const code = card.dataset.code;
+            
+            if (name.includes(searchTerm) || code.includes(searchTerm)) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+    
+    // Template preview
+    const previewBtns = document.querySelectorAll('.preview-btn');
+    const previewModal = new bootstrap.Modal(document.getElementById('templatePreviewModal'));
+    const previewContent = document.querySelector('.template-preview-content');
+    
+    previewBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const templateId = this.dataset.templateId;
+            
+            // Here you would fetch the template preview from the server
+            // For now, we'll just show a placeholder
+            previewContent.innerHTML = `
+                <div class="bg-white p-4 rounded border">
+                    <h3 class="font-bold mb-2">Template Preview</h3>
+                    <p>This is a preview of template ID: ${templateId}</p>
+                    <p>In a real implementation, this would show the actual template content.</p>
+                </div>
+            `;
+            
+            document.querySelector('.select-template-btn').dataset.templateId = templateId;
+            
+            previewModal.show();
+        });
+    });
+    
+    // Select template from preview
+    const selectTemplateBtn = document.querySelector('.select-template-btn');
+    
+    selectTemplateBtn.addEventListener('click', function() {
+        const templateId = this.dataset.templateId;
+        const templateRadio = document.getElementById(`template-${templateId}`);
+        
+        if (templateRadio) {
+            templateRadio.checked = true;
+            
+            // Trigger change event
+            const event = new Event('change');
+            templateRadio.dispatchEvent(event);
+            
+            // Apply visual selection
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('ring-2', 'ring-blue-500', 'transform', '-translate-y-1');
+            });
+            
+            document.querySelectorAll('.check-indicator').forEach(indicator => {
+                indicator.classList.remove('bg-blue-500', 'border-blue-500');
+            });
+            
+            document.querySelectorAll('.check-indicator i').forEach(icon => {
+                icon.classList.add('opacity-0');
+                icon.classList.remove('opacity-100');
+            });
+            
+            const selectedCard = templateRadio.closest('.template-card-wrapper').querySelector('.template-card');
+            const selectedIndicator = templateRadio.closest('.template-card-wrapper').querySelector('.check-indicator');
+            const selectedIcon = selectedIndicator.querySelector('i');
+            
+            selectedCard.classList.add('ring-2', 'ring-blue-500', 'transform', '-translate-y-1');
+            selectedIndicator.classList.add('bg-blue-500', 'border-blue-500');
+            selectedIcon.classList.remove('opacity-0');
+            selectedIcon.classList.add('opacity-100');
+            
+            previewModal.hide();
+        }
+    });
+    
+    // Handle template selection directly
+    const templateRadios = document.querySelectorAll('.template-radio');
+    
+    templateRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                // Update visual selection
+                document.querySelectorAll('.template-card').forEach(card => {
+                    card.classList.remove('ring-2', 'ring-blue-500', 'transform', '-translate-y-1');
+                });
+                
+                document.querySelectorAll('.check-indicator').forEach(indicator => {
+                    indicator.classList.remove('bg-blue-500', 'border-blue-500');
+                });
+                
+                document.querySelectorAll('.check-indicator i').forEach(icon => {
+                    icon.classList.add('opacity-0');
+                    icon.classList.remove('opacity-100');
+                });
+                
+                const selectedCard = this.closest('.template-card-wrapper').querySelector('.template-card');
+                const selectedIndicator = this.closest('.template-card-wrapper').querySelector('.check-indicator');
+                const selectedIcon = selectedIndicator.querySelector('i');
+                
+                selectedCard.classList.add('ring-2', 'ring-blue-500', 'transform', '-translate-y-1');
+                selectedIndicator.classList.add('bg-blue-500', 'border-blue-500');
+                selectedIcon.classList.remove('opacity-0');
+                selectedIcon.classList.add('opacity-100');
+            }
+        });
+    });
+});
+</script> 

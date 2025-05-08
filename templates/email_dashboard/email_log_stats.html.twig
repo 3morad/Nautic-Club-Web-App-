@@ -1,0 +1,476 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Email Statistics{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-card {
+            transition: all 0.2s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-container {
+            height: 300px;
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-4">
+    <div class="flex justify-between items-center mb-6 py-4 border-b border-gray-200">
+        <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+            <i class="fas fa-chart-bar text-blue-600 mr-3"></i>Email Statistics
+        </h1>
+        <a href="{{ path('email_dashboard') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Date Range Selector -->
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h3 class="text-lg font-medium text-gray-800">Email Performance</h3>
+            
+            <div class="relative inline-block">
+                <button id="date-range-btn" class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <span id="selected-date-range">Last 30 days</span>
+                    <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+                </button>
+                <div id="date-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 hidden">
+                    <div class="py-1">
+                        <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="7">Last 7 days</a>
+                        <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="30">Last 30 days</a>
+                        <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="90">Last 90 days</a>
+                        <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="365">Last year</a>
+                        <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="custom">Custom range</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Custom Date Range (hidden by default) -->
+            <div id="custom-date-container" class="flex flex-col sm:flex-row gap-3 hidden">
+                <div class="flex items-center">
+                    <label for="date-from" class="mr-2 text-sm font-medium text-gray-700">From:</label>
+                    <input type="date" id="date-from" class="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                </div>
+                <div class="flex items-center">
+                    <label for="date-to" class="mr-2 text-sm font-medium text-gray-700">To:</label>
+                    <input type="date" id="date-to" class="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                </div>
+                <button type="button" id="apply-date-range" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Apply
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Total Sent -->
+        <div class="bg-white rounded-lg shadow-md p-6 stats-card">
+            <div class="flex items-center">
+                <div class="rounded-full bg-blue-100 p-3 mr-4">
+                    <i class="fas fa-paper-plane text-blue-500 text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-gray-800">{{ total_sent|default(256) }}</div>
+                    <div class="text-sm text-gray-500">Total Sent</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-500">Previous period:</span>
+                    <span class="text-green-600 font-medium flex items-center">+12.5% <i class="fas fa-arrow-up ml-1"></i></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delivery Rate -->
+        <div class="bg-white rounded-lg shadow-md p-6 stats-card">
+            <div class="flex items-center">
+                <div class="rounded-full bg-green-100 p-3 mr-4">
+                    <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-gray-800">{{ delivery_rate|default('98.6%') }}</div>
+                    <div class="text-sm text-gray-500">Delivery Rate</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-500">Previous period:</span>
+                    <span class="text-green-600 font-medium flex items-center">+0.5% <i class="fas fa-arrow-up ml-1"></i></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Open Rate -->
+        <div class="bg-white rounded-lg shadow-md p-6 stats-card">
+            <div class="flex items-center">
+                <div class="rounded-full bg-purple-100 p-3 mr-4">
+                    <i class="fas fa-eye text-purple-500 text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-gray-800">{{ open_rate|default('43.2%') }}</div>
+                    <div class="text-sm text-gray-500">Open Rate</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-500">Previous period:</span>
+                    <span class="text-red-600 font-medium flex items-center">-2.1% <i class="fas fa-arrow-down ml-1"></i></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Click Rate -->
+        <div class="bg-white rounded-lg shadow-md p-6 stats-card">
+            <div class="flex items-center">
+                <div class="rounded-full bg-yellow-100 p-3 mr-4">
+                    <i class="fas fa-mouse-pointer text-yellow-500 text-xl"></i>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-gray-800">{{ click_rate|default('21.5%') }}</div>
+                    <div class="text-sm text-gray-500">Click Rate</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-500">Previous period:</span>
+                    <span class="text-green-600 font-medium flex items-center">+3.7% <i class="fas fa-arrow-up ml-1"></i></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Primary Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Email Volume Chart -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-800">Email Volume</h3>
+                <div class="flex space-x-2">
+                    <button class="text-sm px-3 py-1 rounded-md bg-blue-100 text-blue-600 font-medium">Daily</button>
+                    <button class="text-sm px-3 py-1 rounded-md bg-gray-100 text-gray-600 font-medium">Weekly</button>
+                    <button class="text-sm px-3 py-1 rounded-md bg-gray-100 text-gray-600 font-medium">Monthly</button>
+                </div>
+            </div>
+            <div class="chart-container" id="emailVolumeChart">
+                <!-- Chart will be rendered here -->
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <div class="spinner-border text-blue-500 mb-3" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="text-gray-500">Loading chart data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Open and Click Rates Chart -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-800">Engagement Rates</h3>
+                <div class="flex space-x-2">
+                    <button class="text-sm px-3 py-1 rounded-md bg-blue-100 text-blue-600 font-medium">Open Rate</button>
+                    <button class="text-sm px-3 py-1 rounded-md bg-gray-100 text-gray-600 font-medium">Click Rate</button>
+                </div>
+            </div>
+            <div class="chart-container" id="engagementRatesChart">
+                <!-- Chart will be rendered here -->
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <div class="spinner-border text-blue-500 mb-3" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="text-gray-500">Loading chart data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Secondary Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Device Breakdown -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-medium text-gray-800 mb-4">Device Breakdown</h3>
+            <div class="chart-container" id="deviceBreakdownChart" style="height: 250px;">
+                <!-- Chart will be rendered here -->
+            </div>
+            <div class="grid grid-cols-3 gap-4 mt-4">
+                <div class="text-center">
+                    <div class="text-xl font-bold text-gray-800">{{ desktop_rate|default('42%') }}</div>
+                    <div class="text-sm text-gray-500">Desktop</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xl font-bold text-gray-800">{{ mobile_rate|default('48%') }}</div>
+                    <div class="text-sm text-gray-500">Mobile</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-xl font-bold text-gray-800">{{ tablet_rate|default('10%') }}</div>
+                    <div class="text-sm text-gray-500">Tablet</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Best Performing Templates -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-medium text-gray-800 mb-4">Top Templates by Open Rate</h3>
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <div class="w-full">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">Welcome Email</span>
+                            <span class="text-sm font-medium text-gray-700">65.3%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-full">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">Event Reminder</span>
+                            <span class="text-sm font-medium text-gray-700">51.2%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 51%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-full">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">Special Offer</span>
+                            <span class="text-sm font-medium text-gray-700">43.7%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 44%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-full">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">Monthly Newsletter</span>
+                            <span class="text-sm font-medium text-gray-700">38.9%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 39%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-full">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium text-gray-700">Membership Update</span>
+                            <span class="text-sm font-medium text-gray-700">32.4%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: 32%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Date range selector
+            const dateRangeBtn = document.getElementById('date-range-btn');
+            const dateDropdown = document.getElementById('date-dropdown');
+            const dateOptions = document.querySelectorAll('.date-option');
+            const selectedDateRange = document.getElementById('selected-date-range');
+            const customDateContainer = document.getElementById('custom-date-container');
+            
+            // Toggle date dropdown
+            dateRangeBtn.addEventListener('click', function() {
+                dateDropdown.classList.toggle('hidden');
+            });
+            
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!dateRangeBtn.contains(event.target) && !dateDropdown.contains(event.target)) {
+                    dateDropdown.classList.add('hidden');
+                }
+            });
+            
+            // Date options
+            dateOptions.forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const value = this.getAttribute('data-value');
+                    
+                    if (value === 'custom') {
+                        customDateContainer.classList.remove('hidden');
+                    } else {
+                        customDateContainer.classList.add('hidden');
+                        selectedDateRange.textContent = this.textContent.trim();
+                        loadChartData(value); // This would fetch new data based on date range
+                    }
+                    
+                    dateDropdown.classList.add('hidden');
+                });
+            });
+            
+            // Custom date range
+            document.getElementById('apply-date-range').addEventListener('click', function() {
+                const fromDate = document.getElementById('date-from').value;
+                const toDate = document.getElementById('date-to').value;
+                
+                if (fromDate && toDate) {
+                    selectedDateRange.textContent = `${fromDate} - ${toDate}`;
+                    loadChartData('custom', fromDate, toDate); // This would fetch new data based on custom dates
+                }
+            });
+            
+            // Initialize charts
+            initializeCharts();
+            
+            function initializeCharts() {
+                // Email Volume Chart
+                const emailVolumeCtx = document.getElementById('emailVolumeChart').getContext('2d');
+                const emailVolumeChart = new Chart(emailVolumeCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan 1', 'Jan 2', 'Jan 3', 'Jan 4', 'Jan 5', 'Jan 6', 'Jan 7'],
+                        datasets: [{
+                            label: 'Emails Sent',
+                            data: [12, 19, 8, 15, 20, 14, 11],
+                            backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+                
+                // Engagement Rates Chart
+                const engagementRatesCtx = document.getElementById('engagementRatesChart').getContext('2d');
+                const engagementRatesChart = new Chart(engagementRatesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan 1', 'Jan 2', 'Jan 3', 'Jan 4', 'Jan 5', 'Jan 6', 'Jan 7'],
+                        datasets: [{
+                            label: 'Open Rate',
+                            data: [45, 42, 50, 48, 43, 47, 46],
+                            backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                            borderColor: 'rgba(168, 85, 247, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }, {
+                            label: 'Click Rate',
+                            data: [22, 25, 18, 20, 24, 21, 19],
+                            backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                            borderColor: 'rgba(245, 158, 11, 1)',
+                            borderWidth: 2,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.raw + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Device Breakdown Chart
+                const deviceBreakdownCtx = document.getElementById('deviceBreakdownChart').getContext('2d');
+                const deviceBreakdownChart = new Chart(deviceBreakdownCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Desktop', 'Mobile', 'Tablet'],
+                        datasets: [{
+                            data: [42, 48, 10],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(249, 115, 22, 0.8)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Function to load new chart data based on date range
+            function loadChartData(dateRange, fromDate, toDate) {
+                // This would be an AJAX call to fetch data for the new date range
+                console.log('Loading chart data for range:', dateRange);
+                if (dateRange === 'custom') {
+                    console.log('Custom date range:', fromDate, 'to', toDate);
+                }
+                
+                // For now, we'll just simulate a loading state
+                document.querySelectorAll('.chart-container').forEach(container => {
+                    container.innerHTML = `
+                        <div class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <div class="spinner-border text-blue-500 mb-3" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <p class="text-gray-500">Loading chart data...</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // After a delay, reinitialize charts (this simulates loading new data)
+                setTimeout(() => {
+                    initializeCharts();
+                }, 1000);
+            }
+        });
+    </script>
+{% endblock %} 

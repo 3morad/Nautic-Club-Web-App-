@@ -1,0 +1,497 @@
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <!-- Header with search and filters -->
+    <div class="p-6 border-b border-gray-200">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h3 class="text-xl font-bold text-gray-800">Email Logs</h3>
+            
+            <div class="flex flex-col sm:flex-row gap-3">
+                <!-- Search -->
+                <div class="relative">
+                    <input type="text" id="log-search" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Search by subject, recipient...">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Status Filter Dropdown -->
+                <div class="relative inline-block">
+                    <button id="status-filter-btn" class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span id="selected-status">All Statuses</span>
+                        <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+                    </button>
+                    <div id="status-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 hidden">
+                        <div class="py-1">
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="all">All Statuses</a>
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="sent">
+                                <span class="inline-flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Sent
+                                </span>
+                            </a>
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="delivered">
+                                <span class="inline-flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span> Delivered
+                                </span>
+                            </a>
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="opened">
+                                <span class="inline-flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-purple-500 mr-2"></span> Opened
+                                </span>
+                            </a>
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="clicked">
+                                <span class="inline-flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span> Clicked
+                                </span>
+                            </a>
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="failed">
+                                <span class="inline-flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span> Failed
+                                </span>
+                            </a>
+                            <a href="#" class="status-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="pending">
+                                <span class="inline-flex items-center">
+                                    <span class="w-2 h-2 rounded-full bg-gray-500 mr-2"></span> Pending
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Date Range Dropdown -->
+                <div class="relative inline-block">
+                    <button id="date-filter-btn" class="flex items-center justify-between w-full px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <span id="selected-date-range">Last 7 days</span>
+                        <i class="fas fa-chevron-down ml-2 text-gray-500 text-sm"></i>
+                    </button>
+                    <div id="date-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 hidden">
+                        <div class="py-1">
+                            <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="today">Today</a>
+                            <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="yesterday">Yesterday</a>
+                            <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="last7">Last 7 days</a>
+                            <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="last30">Last 30 days</a>
+                            <a href="#" class="date-option block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-value="custom">Custom Range</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Custom Date Range (hidden by default) -->
+        <div id="custom-date-container" class="mt-4 flex flex-col sm:flex-row gap-3 hidden">
+            <div class="flex items-center">
+                <label for="date-from" class="mr-2 text-sm font-medium text-gray-700">From:</label>
+                <input type="date" id="date-from" class="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            </div>
+            <div class="flex items-center">
+                <label for="date-to" class="mr-2 text-sm font-medium text-gray-700">To:</label>
+                <input type="date" id="date-to" class="border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+            </div>
+            <button type="button" id="apply-date-range" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Apply
+            </button>
+        </div>
+    </div>
+    
+    <!-- Logs Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email Details
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Sent
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Template
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="logs-container">
+                {% if logs|length > 0 %}
+                    {% for log in logs %}
+                        <tr class="log-item hover:bg-gray-50" data-status="{{ log.status|default('pending') }}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% set statusColor = 'gray' %}
+                                {% set statusText = 'Pending' %}
+                                
+                                {% if log.status == 'sent' %}
+                                    {% set statusColor = 'green' %}
+                                    {% set statusText = 'Sent' %}
+                                {% elseif log.status == 'delivered' %}
+                                    {% set statusColor = 'blue' %}
+                                    {% set statusText = 'Delivered' %}
+                                {% elseif log.status == 'opened' %}
+                                    {% set statusColor = 'purple' %}
+                                    {% set statusText = 'Opened' %}
+                                {% elseif log.status == 'clicked' %}
+                                    {% set statusColor = 'yellow' %}
+                                    {% set statusText = 'Clicked' %}
+                                {% elseif log.status == 'failed' %}
+                                    {% set statusColor = 'red' %}
+                                    {% set statusText = 'Failed' %}
+                                {% endif %}
+                                
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ statusColor }}-100 text-{{ statusColor }}-800">
+                                    <span class="w-2 h-2 rounded-full bg-{{ statusColor }}-500 self-center mr-1"></span>
+                                    {{ statusText }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900 mb-1">{{ log.recipient.email|default('recipient@example.com') }}</div>
+                                <div class="text-sm text-gray-500 truncate max-w-xs">{{ log.subject|default('Sample email subject line') }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ log.sentAt|default('now')|date('M d, Y') }}</div>
+                                <div class="text-xs text-gray-500">{{ log.sentAt|default('now')|date('h:i A') }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ log.template.name|default('Welcome Email') }}</div>
+                                <div class="text-xs text-gray-500">{{ log.template.code|default('welcome_email') }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <button type="button" class="view-log-btn text-blue-600 hover:text-blue-900" data-log-id="{{ log.id|default(loop.index) }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="resend-log-btn text-green-600 hover:text-green-900 ml-3" data-log-id="{{ log.id|default(loop.index) }}">
+                                    <i class="fas fa-redo-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-10 text-center">
+                            <div class="flex flex-col items-center justify-center text-center">
+                                <div class="rounded-full bg-gray-100 p-4 mb-4">
+                                    <i class="fas fa-envelope text-gray-400 text-2xl"></i>
+                                </div>
+                                <h3 class="mt-2 text-sm font-medium text-gray-900">No email logs found</h3>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    No emails have been sent yet or none match your current filters.
+                                </p>
+                                <div class="mt-6">
+                                    <a href="{{ path('email_bulk_send') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <i class="fas fa-paper-plane mr-2"></i>
+                                        Send Emails
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+        {% if logs|length > 0 %}
+            <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-700">
+                    Showing <span class="font-medium">1</span> to <span class="font-medium">{{ logs|length }}</span> of <span class="font-medium">{{ total_logs|default(logs|length) }}</span> results
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Previous</span>
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            1
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            2
+                        </a>
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                            3
+                        </span>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            4
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            5
+                        </a>
+                        <a href="#" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                            <span class="sr-only">Next</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Log Details Modal -->
+<div id="log-details-modal" class="fixed inset-0 overflow-y-auto hidden z-50">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            Email Details
+                        </h3>
+                        <div class="mt-4 border-t border-gray-200 pt-4">
+                            <div class="mb-4">
+                                <p class="text-sm font-medium text-gray-500">Status</p>
+                                <div class="mt-1">
+                                    <span id="modal-status" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        <span class="w-2 h-2 rounded-full bg-green-500 self-center mr-1"></span>
+                                        Sent
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-sm font-medium text-gray-500">Recipient</p>
+                                <p id="modal-recipient" class="mt-1 text-sm text-gray-900">
+                                    user@example.com
+                                </p>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-sm font-medium text-gray-500">Subject</p>
+                                <p id="modal-subject" class="mt-1 text-sm text-gray-900">
+                                    Welcome to Nautic Club
+                                </p>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-sm font-medium text-gray-500">Sent</p>
+                                <p id="modal-sent-date" class="mt-1 text-sm text-gray-900">
+                                    Mar 15, 2023 at 2:30 PM
+                                </p>
+                            </div>
+                            <div class="mb-4">
+                                <p class="text-sm font-medium text-gray-500">Template</p>
+                                <p id="modal-template" class="mt-1 text-sm text-gray-900">
+                                    Welcome Email (welcome_email)
+                                </p>
+                            </div>
+                            
+                            <div id="tracking-info" class="mb-4 bg-gray-50 p-3 rounded-md">
+                                <h4 class="text-sm font-medium text-gray-700 mb-2">Tracking Information</h4>
+                                <div class="grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                        <p class="text-gray-500">Opened</p>
+                                        <p id="modal-opened" class="font-medium">Mar 15, 2023 at 3:15 PM</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">Clicked</p>
+                                        <p id="modal-clicked" class="font-medium">Mar 15, 2023 at 3:18 PM</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">Device</p>
+                                        <p id="modal-device" class="font-medium">iPhone (Mobile)</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-gray-500">Location</p>
+                                        <p id="modal-location" class="font-medium">Paris, France</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="flex items-center justify-between">
+                                    <p class="text-sm font-medium text-gray-500">Email Content</p>
+                                    <button id="view-full-email-btn" class="text-xs text-blue-600 hover:text-blue-800">
+                                        View Full Email
+                                    </button>
+                                </div>
+                                <div id="email-preview" class="mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-700 max-h-32 overflow-y-auto">
+                                    <p>Hello John,</p>
+                                    <p>Welcome to Nautic Club! We're thrilled to have you join our community...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="resend-modal-btn" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    Resend Email
+                </button>
+                <button type="button" id="close-modal-btn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle dropdowns
+        const statusFilterBtn = document.getElementById('status-filter-btn');
+        const statusDropdown = document.getElementById('status-dropdown');
+        const dateFilterBtn = document.getElementById('date-filter-btn');
+        const dateDropdown = document.getElementById('date-dropdown');
+        
+        // Status filter dropdown
+        statusFilterBtn.addEventListener('click', function() {
+            statusDropdown.classList.toggle('hidden');
+            dateDropdown.classList.add('hidden'); // Hide other dropdown
+        });
+        
+        // Date filter dropdown
+        dateFilterBtn.addEventListener('click', function() {
+            dateDropdown.classList.toggle('hidden');
+            statusDropdown.classList.add('hidden'); // Hide other dropdown
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!statusFilterBtn.contains(event.target) && !statusDropdown.contains(event.target)) {
+                statusDropdown.classList.add('hidden');
+            }
+            
+            if (!dateFilterBtn.contains(event.target) && !dateDropdown.contains(event.target)) {
+                dateDropdown.classList.add('hidden');
+            }
+        });
+        
+        // Status filter options
+        const statusOptions = document.querySelectorAll('.status-option');
+        const selectedStatus = document.getElementById('selected-status');
+        const logsContainer = document.getElementById('logs-container');
+        const logItems = document.querySelectorAll('.log-item');
+        
+        statusOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const value = this.getAttribute('data-value');
+                selectedStatus.textContent = this.textContent.trim();
+                statusDropdown.classList.add('hidden');
+                
+                // Filter logs
+                logItems.forEach(item => {
+                    if (value === 'all' || item.getAttribute('data-status') === value) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+            });
+        });
+        
+        // Date filter options
+        const dateOptions = document.querySelectorAll('.date-option');
+        const selectedDateRange = document.getElementById('selected-date-range');
+        const customDateContainer = document.getElementById('custom-date-container');
+        
+        dateOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                const value = this.getAttribute('data-value');
+                
+                if (value === 'custom') {
+                    customDateContainer.classList.remove('hidden');
+                } else {
+                    customDateContainer.classList.add('hidden');
+                    selectedDateRange.textContent = this.textContent.trim();
+                }
+                
+                dateDropdown.classList.add('hidden');
+                
+                // Would typically send AJAX request to filter by date
+                console.log('Date filter selected:', value);
+            });
+        });
+        
+        // Search functionality
+        const searchInput = document.getElementById('log-search');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            
+            logItems.forEach(item => {
+                const emailDetails = item.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const template = item.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                
+                if (emailDetails.includes(searchTerm) || template.includes(searchTerm) || searchTerm === '') {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Log details modal
+        const logDetailsModal = document.getElementById('log-details-modal');
+        const viewLogBtns = document.querySelectorAll('.view-log-btn');
+        const resendLogBtns = document.querySelectorAll('.resend-log-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        
+        viewLogBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const logId = this.getAttribute('data-log-id');
+                
+                // In a real implementation, you would fetch the log details via AJAX
+                // For now, we'll just show the modal with sample data
+                logDetailsModal.classList.remove('hidden');
+                
+                // Update modal with log data
+                // This would typically be populated with data from an AJAX call
+                document.getElementById('modal-title').textContent = `Email Log #${logId}`;
+            });
+        });
+        
+        resendLogBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const logId = this.getAttribute('data-log-id');
+                
+                // Here you would trigger a resend via AJAX
+                console.log('Resending email for log ID:', logId);
+                
+                // Show a confirmation message (in a real implementation)
+                alert(`Email would be resent for log #${logId}`);
+            });
+        });
+        
+        document.getElementById('resend-modal-btn').addEventListener('click', function() {
+            const logId = document.getElementById('modal-title').textContent.split('#')[1];
+            
+            // Here you would trigger a resend via AJAX
+            console.log('Resending email for log ID:', logId);
+            
+            // Show a confirmation message (in a real implementation)
+            alert(`Email would be resent for log #${logId}`);
+            
+            // Close the modal
+            logDetailsModal.classList.add('hidden');
+        });
+        
+        closeModalBtn.addEventListener('click', function() {
+            logDetailsModal.classList.add('hidden');
+        });
+        
+        // Close modal when clicking outside
+        logDetailsModal.addEventListener('click', function(event) {
+            if (event.target === logDetailsModal) {
+                logDetailsModal.classList.add('hidden');
+            }
+        });
+        
+        // View Full Email button
+        document.getElementById('view-full-email-btn').addEventListener('click', function() {
+            const emailPreview = document.getElementById('email-preview');
+            
+            if (emailPreview.classList.contains('max-h-32')) {
+                emailPreview.classList.remove('max-h-32');
+                this.textContent = 'Collapse';
+            } else {
+                emailPreview.classList.add('max-h-32');
+                this.textContent = 'View Full Email';
+            }
+        });
+    });
+</script> 

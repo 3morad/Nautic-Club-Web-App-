@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>reCAPTCHA Test</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .g-recaptcha {
+            margin: 1rem 0;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Test Form</h2>
+        <form id="testForm" method="POST">
+            <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // This script will automatically check the reCAPTCHA
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for reCAPTCHA to load
+            setTimeout(function() {
+                // Find the reCAPTCHA iframe
+                const iframe = document.querySelector('.g-recaptcha iframe');
+                if (iframe) {
+                    // Simulate a click on the checkbox
+                    iframe.contentWindow.postMessage({
+                        action: 'check',
+                        token: 'test-token'
+                    }, '*');
+                }
+            }, 1000);
+        });
+
+        // Handle form submission
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Form submitted successfully!');
+            // You can add your form submission logic here
+        });
+    </script>
+</body>
+</html> 
